@@ -225,7 +225,7 @@ _getw(PAL_FILE *f)
 
     CLEARERR(f);
     
-    ret = getw( f->bsdFilePtr );
+    ret = getc( f->bsdFilePtr );
     LOGEXIT( "returning %d\n", ret );
     PERF_EXIT(_getw);
     
@@ -478,7 +478,7 @@ _putw(int c, PAL_FILE *f)
 
     CLEARERR(f);
  
-    ret = putw(c,  f->bsdFilePtr );
+    ret = putc(c,  f->bsdFilePtr );
     LOGEXIT( "returning %d\n", ret );
     PERF_EXIT(_putw);
 
