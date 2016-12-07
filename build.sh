@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/data/data/com.termux/files/usr/bin/bash
 
 # resolve python-version to use
 if [ "$PYTHON" == "" ] ; then

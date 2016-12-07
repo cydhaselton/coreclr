@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/data/data/com.termux/files/usr/bin/bash
 # $1 contains full path to the .so to verify
 # $2 contains message to print when the verification fails
 
