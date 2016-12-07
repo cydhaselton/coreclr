@@ -443,7 +443,8 @@ int ExecuteManagedAssembly(
     }
     else
     {
-        char* error = dlerror();
+    //in Android this is 'const char*'
+        const char* error = dlerror();
         fprintf(stderr, "dlopen failed to open the libcoreclr.so with error %s\n", error);
     }
 
