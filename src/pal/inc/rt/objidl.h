@@ -103,7 +103,8 @@ enum tagSTREAM_SEEK
 
 typedef 
 enum tagLOCKTYPE
-    {	LOCK_WRITE	= 1,
+//Android already defines LOCK_WRITE
+    {	LOCK_WR	= 1,
 	LOCK_EXCLUSIVE	= 2,
 	LOCK_ONLYONCE	= 4
     } 	LOCKTYPE;
