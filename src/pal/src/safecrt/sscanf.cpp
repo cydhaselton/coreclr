@@ -18,10 +18,10 @@
 #include "internal_securecrt.h"
 
 #include "mbusafecrt_internal.h"
-#include "mbusafecrt.h"
+
 typedef int (*INPUTFN)(miniFILE *, const unsigned char*, va_list);
 typedef int (*WINPUTFN)(miniFILE *, const wchar_t*, va_list);
-extern size_t PAL_wcsnlen( const WCHAR* inString, size_t inMaxSize );
+extern size_t PAL_wcsnlen(const WCHAR* inString, size_t inMaxSize);
 
 /***
 *static int v[nw]scan_fn([w]inputfn, string, [count], format, ...)
