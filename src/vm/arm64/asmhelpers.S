@@ -675,6 +675,45 @@ LOCAL_LABEL(UM2MThunk_WrapperHelper_RegArgumentsSetup):
 NESTED_END UM2MThunk_WrapperHelper, _TEXT
 
 
+#ifdef FEATURE_HIJACK
+// ------------------------------------------------------------------
+// Hijack function for functions which return a scalar type or a struct (value type)
+    NESTED_ENTRY OnHijackTripThread, _TEXT, NoHandler
+    PROLOG_SAVE_REG_PAIR   fp, lr, #-144
+    // Spill callee saved registers 
+    PROLOG_SAVE_REG_PAIR   x19, x20, #16
+    PROLOG_SAVE_REG_PAIR   x21, x22, #32
+    PROLOG_SAVE_REG_PAIR   x23, x24, #48
+    PROLOG_SAVE_REG_PAIR   x25, x26, #64
+    PROLOG_SAVE_REG_PAIR   x27, x28, #80
+
+    // save any integral return value(s)
+    stp x0, x1, [sp, #96]
+
+    // save any FP/HFA return value(s)
+    stp d0, d1, [sp, #112]
+    stp d2, d3, [sp, #128]
+
+    mov x0, sp
+    bl OnHijackWorker
+	
+    // restore any integral return value(s)
+    ldp x0, x1, [sp, #96]
+
+    // restore any FP/HFA return value(s)
+    ldp d0, d1, [sp, #112]
+    ldp d2, d3, [sp, #128]
+
+    EPILOG_RESTORE_REG_PAIR   x19, x20, #16
+    EPILOG_RESTORE_REG_PAIR   x21, x22, #32
+    EPILOG_RESTORE_REG_PAIR   x23, x24, #48
+    EPILOG_RESTORE_REG_PAIR   x25, x26, #64
+    EPILOG_RESTORE_REG_PAIR   x27, x28, #80
+    EPILOG_RESTORE_REG_PAIR   fp, lr,   #144
+    EPILOG_RETURN
+    NESTED_END OnHijackTripThread, _TEXT
+
+#endif // FEATURE_HIJACK
 
 // ------------------------------------------------------------------
 // Redirection Stub for GC in fully interruptible method
