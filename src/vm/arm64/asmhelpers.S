@@ -197,8 +197,9 @@ NESTED_END ResolveWorkerAsmStub, _TEXT
 NESTED_ENTRY ResolveWorkerChainLookupAsmStub, _TEXT, NoHandler
 
     // ARMSTUB TODO: implement chained lookup
-    b C_FUNC(ResolveWorkerAsmStub)
-
+    //textrel fix
+    //b C_FUNC(ResolveWorkerAsmStub)
+   EMIT_BREAKPOINT
 NESTED_END ResolveWorkerChainLookupAsmStub, _TEXT
 
 //-----------------------------------------------------------------------------
@@ -220,23 +221,7 @@ NESTED_END ResolveWorkerChainLookupAsmStub, _TEXT
     LEAF_END_MARKED \name, _TEXT
 .endmacro
 
-// void JIT_ByRefWriteBarrier
-// On entry:
-//   x13  : the source address (points to object reference to write)
-//   x14  : the destination address (object reference written here)
-//
-// On exit:
-//   x12  : trashed
-//   x13  : incremented by 8
-//   x14  : incremented by 8
-//   x15  : trashed
-//
-WRITE_BARRIER_ENTRY JIT_ByRefWriteBarrier
 
-    ldr  x15, [x13], 8
-    b C_FUNC(JIT_CheckedWriteBarrier)
-
-WRITE_BARRIER_END JIT_ByRefWriteBarrier 
 
 //-----------------------------------------------------------------------------
 // Simple WriteBarriers
@@ -252,17 +237,19 @@ WRITE_BARRIER_END JIT_ByRefWriteBarrier
 //
 WRITE_BARRIER_ENTRY JIT_CheckedWriteBarrier
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    ldr  x12,  =g_lowest_address
+    //PREPARE_EXTERNAL_VAR g_lowest_address, x12
+    //ldr  x12,  =g_lowest_address
     ldr  x12,  [x12]
     cmp  x14,  x12
     blt  LOCAL_LABEL(NotInHeap)
 
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    ldr  x12, =g_highest_address 
+    //ldr  x12, =g_highest_address 
+    //PREPARE_EXTERNAL_VAR g_highest_address, x12
     ldr  x12, [x12] 
     cmp  x14, x12
-    blt  C_FUNC(JIT_WriteBarrier)
-
+    //blt  C_FUNC(JIT_WriteBarrier)
+    EMIT_BREAKPOINT
 LOCAL_LABEL(NotInHeap):
     str  x15, [x14], 8
     ret  lr
@@ -285,20 +272,23 @@ WRITE_BARRIER_ENTRY JIT_WriteBarrier
     // Branch to Exit if the reference is not in the Gen0 heap
     //
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    ldr  x12,  =g_ephemeral_low
+    //PREPARE_EXTERNAL_VAR g_ephemeral_low, x12    
+    //ldr  x12,  =g_ephemeral_low
     ldr  x12,  [x12]
     cmp  x15,  x12
     blt  LOCAL_LABEL(Exit)
 
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    ldr  x12, =g_ephemeral_high 
+    //ldr  x12, =g_ephemeral_high 
+    //PREPARE_EXTERNAL_VAR g_ephemeral_high, x12
     ldr  x12, [x12]
     cmp  x15,  x12
     bgt  LOCAL_LABEL(Exit)
 
     // Check if we need to update the card table
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    ldr  x12, =g_card_table
+    //ldr  x12, =g_card_table
+    //PREPARE_EXTERNAL_VAR g_card_table, x12
     ldr  x12, [x12]
     add  x15,  x12, x14, lsr #11
     ldrb w12, [x15]
@@ -311,6 +301,24 @@ LOCAL_LABEL(UpdateCardTable):
 LOCAL_LABEL(Exit):
     ret  lr  
 WRITE_BARRIER_END JIT_WriteBarrier
+
+// void JIT_ByRefWriteBarrier
+// On entry:
+//   x13  : the source address (points to object reference to write)
+//   x14  : the destination address (object reference written here)
+//
+// On exit:
+//   x12  : trashed
+//   x13  : incremented by 8
+//   x14  : incremented by 8
+//   x15  : trashed
+//
+WRITE_BARRIER_ENTRY JIT_ByRefWriteBarrier
+
+    ldr  x15, [x13], 8
+    //b C_FUNC(JIT_CheckedWriteBarrier)
+    EMIT_BREAKPOINT
+WRITE_BARRIER_END JIT_ByRefWriteBarrier 
 
 // ------------------------------------------------------------------
 // Start of the writeable code region
@@ -417,8 +425,8 @@ LEAF_ENTRY SinglecastDelegateInvokeStub, _TEXT
 
 LOCAL_LABEL(LNullThis):
     mov x0, #CORINFO_NullReferenceException_ASM
-    b C_FUNC(JIT_InternalThrow)
-
+    //b C_FUNC(JIT_InternalThrow)
+    EMIT_BREAKPOINT
 LEAF_END SinglecastDelegateInvokeStub, _TEXT
 
 //
@@ -475,8 +483,8 @@ LOCAL_LABEL(UMThunkStub_HaveThread):
     mov x9, 1
     // m_fPreemptiveGCDisabled is 4 byte field so using 32-bit variant
     str w9, [x19, #Thread__m_fPreemptiveGCDisabled]
-
-    ldr x2, =g_TrapReturningThreads
+    //PREPARE_EXTERNAL_VAR g_TrapReturningThreads, x2
+    //ldr x2, =g_TrapReturningThreads
     ldr x3, [x2]
     // assuming x0 contains Thread* before jumping to UMThunkStub_DoTrapReturningThreads
     cbnz x3, LOCAL_LABEL(UMThunkStub_DoTrapReturningThreads)
@@ -810,27 +818,50 @@ NESTED_END NakedThrowHelper2, _TEXT
 GenerateRedirectedStubWithFrame NakedThrowHelper, NakedThrowHelper2
 
 #ifdef FEATURE_READYTORUN
-
-NESTED_ENTRY DelayLoad_MethodCall_FakeProlog, _TEXT, NoHandler
-DelayLoad_MethodCall:
-    .global DelayLoad_MethodCall
+//textrel fix
+NESTED_ENTRY DelayLoad_MethodCall, _TEXT, NoHandler
+//DelayLoad_MethodCall:
+  //  .global DelayLoad_MethodCall
 
     EMIT_BREAKPOINT
-NESTED_END DelayLoad_MethodCall_FakeProlog, _TEXT
+NESTED_END DelayLoad_MethodCall, _TEXT
 
 
 .macro DynamicHelper frameFlags, suffix
-    NESTED_ENTRY DelayLoad_Helper\suffix\()_FakeProlog, _TEXT, NoHandler
-DelayLoad_Helper\suffix:
-        .global DelayLoad_Helper\suffix
+    NESTED_ENTRY DelayLoad_Helper\suffix\(), _TEXT, NoHandler
+//DelayLoad_Helper\suffix:
+  //      .global DelayLoad_Helper\suffix
 
         EMIT_BREAKPOINT
 
-    NESTED_END DelayLoad_Helper\suffix\()_FakeProlog, _TEXT
+    NESTED_END DelayLoad_Helper\suffix\(), _TEXT
 .endm
 
 DynamicHelper DynamicHelperFrameFlags_Default
 DynamicHelper DynamicHelperFrameFlags_ObjectArg, _Obj
 DynamicHelper DynamicHelperFrameFlags_ObjectArg | DynamicHelperFrameFlags_ObjectArg2, _ObjObj
 
+#endif
+
+#ifdef FEATURE_PREJIT
+// ------------------------------------------------------------------
+// void StubDispatchFixupStub(args in regs x0-x7 & stack and possibly retbuff arg in x8, x11:IndirectionCellAndFlags, x12:DispatchToken)
+//
+// The stub dispatch thunk which transfers control to StubDispatchFixupWorker.
+        NESTED_ENTRY StubDispatchFixupStub, _TEXT, NoHandler
+
+        PROLOG_WITH_TRANSITION_BLOCK
+
+        add x0, sp, #__PWTB_TransitionBlock // pTransitionBlock
+        and x1, x11, #-4 // Indirection cell
+        mov x2, #0 // sectionIndex
+        mov x3, #0 // pModule
+        bl StubDispatchFixupWorker
+        mov x9, x0
+
+        EPILOG_WITH_TRANSITION_BLOCK_TAILCALL
+        PATCH_LABEL StubDispatchFixupPatchLabel
+        EPILOG_BRANCH_REG  x9
+
+        NESTED_END StubDispatchFixupStub, _TEXT
 #endif

@@ -5,7 +5,7 @@
 .macro NESTED_ENTRY Name, Section, Handler
         LEAF_ENTRY \Name, \Section
         .ifnc \Handler, NoHandler
-        .cfi_personality 0x1b, C_FUNC(\Handler) // 0x1b == DW_EH_PE_pcrel | DW_EH_PE_sdata4
+	.cfi_personality 0x10, C_FUNC(\Handler) // 0x10 == (DW_EH_PE_absptr | DW_EH_PE_pcrel)
         .endif
 .endm
 
@@ -88,7 +88,10 @@ C_FUNC(\Name\()_End):
 .endm
 
 .macro EMIT_BREAKPOINT
-        brk #0
+//Android textrel fix
+       // brk #0
+       mov x0,#0
+       ldr x0, [x0]
 .endm
 
 //-----------------------------------------------------------------------------
