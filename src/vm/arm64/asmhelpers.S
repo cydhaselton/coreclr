@@ -198,7 +198,7 @@ NESTED_ENTRY ResolveWorkerChainLookupAsmStub, _TEXT, NoHandler
 
     // ARMSTUB TODO: implement chained lookup
     //textrel fix
-    //b C_FUNC(ResolveWorkerAsmStub)
+    b C_FUNC(ResolveWorkerAsmStub)
    EMIT_BREAKPOINT
 NESTED_END ResolveWorkerChainLookupAsmStub, _TEXT
 
@@ -248,7 +248,7 @@ WRITE_BARRIER_ENTRY JIT_CheckedWriteBarrier
     //PREPARE_EXTERNAL_VAR g_highest_address, x12
     ldr  x12, [x12] 
     cmp  x14, x12
-    //blt  C_FUNC(JIT_WriteBarrier)
+    blt  C_FUNC(JIT_WriteBarrier)
     EMIT_BREAKPOINT
 LOCAL_LABEL(NotInHeap):
     str  x15, [x14], 8
@@ -316,7 +316,7 @@ WRITE_BARRIER_END JIT_WriteBarrier
 WRITE_BARRIER_ENTRY JIT_ByRefWriteBarrier
 
     ldr  x15, [x13], 8
-    //b C_FUNC(JIT_CheckedWriteBarrier)
+    b C_FUNC(JIT_CheckedWriteBarrier)
     EMIT_BREAKPOINT
 WRITE_BARRIER_END JIT_ByRefWriteBarrier 
 
@@ -425,7 +425,7 @@ LEAF_ENTRY SinglecastDelegateInvokeStub, _TEXT
 
 LOCAL_LABEL(LNullThis):
     mov x0, #CORINFO_NullReferenceException_ASM
-    //b C_FUNC(JIT_InternalThrow)
+    b C_FUNC(JIT_InternalThrow)
     EMIT_BREAKPOINT
 LEAF_END SinglecastDelegateInvokeStub, _TEXT
 
@@ -859,8 +859,8 @@ GenerateRedirectedStubWithFrame NakedThrowHelper, NakedThrowHelper2
 #ifdef FEATURE_READYTORUN
 //textrel fix
 NESTED_ENTRY DelayLoad_MethodCall, _TEXT, NoHandler
-//DelayLoad_MethodCall:
-  //  .global DelayLoad_MethodCall
+DelayLoad_MethodCall:
+  //.global DelayLoad_MethodCall
 
     EMIT_BREAKPOINT
 NESTED_END DelayLoad_MethodCall, _TEXT
@@ -869,7 +869,7 @@ NESTED_END DelayLoad_MethodCall, _TEXT
 .macro DynamicHelper frameFlags, suffix
     NESTED_ENTRY DelayLoad_Helper\suffix\(), _TEXT, NoHandler
 //DelayLoad_Helper\suffix:
-  //      .global DelayLoad_Helper\suffix
+  //    .global DelayLoad_Helper\suffix
 
         EMIT_BREAKPOINT
 
