@@ -237,7 +237,7 @@ NESTED_END ResolveWorkerChainLookupAsmStub, _TEXT
 //
 WRITE_BARRIER_ENTRY JIT_CheckedWriteBarrier
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    //PREPARE_EXTERNAL_VAR g_lowest_address, x12
+    PREPARE_EXTERNAL_VAR g_lowest_address, x12
     //ldr  x12,  =g_lowest_address
     ldr  x12,  [x12]
     cmp  x14,  x12
@@ -245,7 +245,7 @@ WRITE_BARRIER_ENTRY JIT_CheckedWriteBarrier
 
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
     //ldr  x12, =g_highest_address 
-    //PREPARE_EXTERNAL_VAR g_highest_address, x12
+    PREPARE_EXTERNAL_VAR g_highest_address, x12
     ldr  x12, [x12] 
     cmp  x14, x12
     blt  C_FUNC(JIT_WriteBarrier)
@@ -272,7 +272,7 @@ WRITE_BARRIER_ENTRY JIT_WriteBarrier
     // Branch to Exit if the reference is not in the Gen0 heap
     //
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
-    //PREPARE_EXTERNAL_VAR g_ephemeral_low, x12    
+    PREPARE_EXTERNAL_VAR g_ephemeral_low, x12
     //ldr  x12,  =g_ephemeral_low
     ldr  x12,  [x12]
     cmp  x15,  x12
@@ -280,7 +280,7 @@ WRITE_BARRIER_ENTRY JIT_WriteBarrier
 
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
     //ldr  x12, =g_ephemeral_high 
-    //PREPARE_EXTERNAL_VAR g_ephemeral_high, x12
+    PREPARE_EXTERNAL_VAR g_ephemeral_high, x12
     ldr  x12, [x12]
     cmp  x15,  x12
     bgt  LOCAL_LABEL(Exit)
@@ -288,7 +288,7 @@ WRITE_BARRIER_ENTRY JIT_WriteBarrier
     // Check if we need to update the card table
     // ARM64TODO: Temporary indirect access till support for :lo12:symbol is added
     //ldr  x12, =g_card_table
-    //PREPARE_EXTERNAL_VAR g_card_table, x12
+    PREPARE_EXTERNAL_VAR g_card_table, x12
     ldr  x12, [x12]
     add  x15,  x12, x14, lsr #11
     ldrb w12, [x15]
@@ -483,7 +483,7 @@ LOCAL_LABEL(UMThunkStub_HaveThread):
     mov x9, 1
     // m_fPreemptiveGCDisabled is 4 byte field so using 32-bit variant
     str w9, [x19, #Thread__m_fPreemptiveGCDisabled]
-    //PREPARE_EXTERNAL_VAR g_TrapReturningThreads, x2
+    PREPARE_EXTERNAL_VAR g_TrapReturningThreads, x2
     //ldr x2, =g_TrapReturningThreads
     ldr x3, [x2]
     // assuming x0 contains Thread* before jumping to UMThunkStub_DoTrapReturningThreads
@@ -858,22 +858,22 @@ GenerateRedirectedStubWithFrame NakedThrowHelper, NakedThrowHelper2
 
 #ifdef FEATURE_READYTORUN
 //textrel fix
-NESTED_ENTRY DelayLoad_MethodCall, _TEXT, NoHandler
+NESTED_ENTRY DelayLoad_MethodCall_FakeProlog, _TEXT, NoHandler
 DelayLoad_MethodCall:
-  //.global DelayLoad_MethodCall
+.global DelayLoad_MethodCall
 
     EMIT_BREAKPOINT
-NESTED_END DelayLoad_MethodCall, _TEXT
+NESTED_END DelayLoad_MethodCall_FakeProlog, _TEXT
 
 
 .macro DynamicHelper frameFlags, suffix
-    NESTED_ENTRY DelayLoad_Helper\suffix\(), _TEXT, NoHandler
-//DelayLoad_Helper\suffix:
-  //    .global DelayLoad_Helper\suffix
+    NESTED_ENTRY DelayLoad_Helper\suffix\()_FakeProlog, _TEXT, NoHandler
+DelayLoad_Helper\suffix:
+    .global DelayLoad_Helper\suffix
 
         EMIT_BREAKPOINT
 
-    NESTED_END DelayLoad_Helper\suffix\(), _TEXT
+    NESTED_END DelayLoad_Helper\suffix\()_FakeProlog, _TEXT
 .endm
 
 DynamicHelper DynamicHelperFrameFlags_Default
