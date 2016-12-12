@@ -27,18 +27,18 @@
 #define SHARED_MEMORY_MAX_FILE_NAME_CHAR_COUNT (_MAX_FNAME - 1)
 #define SHARED_MEMORY_MAX_NAME_CHAR_COUNT (_countof("Global\\") - 1 + SHARED_MEMORY_MAX_FILE_NAME_CHAR_COUNT)
 
-#define SHARED_MEMORY_TEMP_DIRECTORY_PATH "/tmp"
+#define SHARED_MEMORY_TEMP_DIRECTORY_PATH "/data/data/com.termux/files/usr/tmp"
 #define SHARED_MEMORY_RUNTIME_TEMP_DIRECTORY_PATH "/tmp/.dotnet"
 
-#define SHARED_MEMORY_SHARED_MEMORY_DIRECTORY_PATH "/tmp/.dotnet/shm"
-#define SHARED_MEMORY_LOCK_FILES_DIRECTORY_PATH "/tmp/.dotnet/lockfiles"
+#define SHARED_MEMORY_SHARED_MEMORY_DIRECTORY_PATH "/data/data/com.termux/files/usr/tmp/.dotnet/shm"
+#define SHARED_MEMORY_LOCK_FILES_DIRECTORY_PATH "/data/data/com.termux/files/usr/tmp/.dotnet/lockfiles"
 static_assert_no_msg(_countof(SHARED_MEMORY_LOCK_FILES_DIRECTORY_PATH) >= _countof(SHARED_MEMORY_SHARED_MEMORY_DIRECTORY_PATH));
 
 #define SHARED_MEMORY_GLOBAL_DIRECTORY_NAME "global"
 #define SHARED_MEMORY_SESSION_DIRECTORY_NAME_PREFIX "session"
 static_assert_no_msg(_countof(SHARED_MEMORY_SESSION_DIRECTORY_NAME_PREFIX) >= _countof(SHARED_MEMORY_GLOBAL_DIRECTORY_NAME));
 
-#define SHARED_MEMORY_UNIQUE_TEMP_NAME_TEMPLATE "/tmp/.coreclr.XXXXXX"
+#define SHARED_MEMORY_UNIQUE_TEMP_NAME_TEMPLATE "/data/data/com.termux/files/usr/tmp/.coreclr.XXXXXX"
 
 #define SHARED_MEMORY_MAX_SESSION_ID_CHAR_COUNT (10)
 

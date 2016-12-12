@@ -583,7 +583,7 @@ BOOL
 PALAPI
 PAL_NotifyRuntimeStarted(VOID);
 
-static const int MAX_DEBUGGER_TRANSPORT_PIPE_NAME_LENGTH = 64;
+static const int MAX_DEBUGGER_TRANSPORT_PIPE_NAME_LENGTH = 256;
 
 PALIMPORT
 void
@@ -3295,9 +3295,9 @@ PALIMPORT BOOL PALAPI PAL_VirtualUnwindOutOfProc(CONTEXT *context,
 #define PAL_CS_NATIVE_DATA_SIZE 24
 #elif defined(__hpux__) && (defined(__hppa__) || defined (__ia64__))
 #define PAL_CS_NATIVE_DATA_SIZE 148
-#elif defined(__linux__) && defined(_ARM_)
+#elif defined(__linux__) && (defined(_ARM_) && !defined(__ANDROID__))
 #define PAL_CS_NATIVE_DATA_SIZE 80
-#elif defined(__linux__) && defined(_ARM64_)
+#elif defined(__linux__) && (defined(_ARM64_) && !defined(__ANDROID__))
 #define PAL_CS_NATIVE_DATA_SIZE 116
 #elif defined(__linux__) && defined(__i386__)
 #define PAL_CS_NATIVE_DATA_SIZE 76
@@ -3319,6 +3319,8 @@ PALIMPORT BOOL PALAPI PAL_VirtualUnwindOutOfProc(CONTEXT *context,
 #define PAL_CS_NATIVE_DATA_SIZE 92
 #elif defined(__sun__)
 #define PAL_CS_NATIVE_DATA_SIZE 48
+#elif defined (__ANDROID__) && defined(_ARM64_)
+#define PAL_CS_NATIVE_DATA_SIZE 144
 #else 
 #warning 
 #error  PAL_CS_NATIVE_DATA_SIZE is not defined for this architecture

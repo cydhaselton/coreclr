@@ -495,7 +495,7 @@ GetTempPathA(
     else /* env var not found or was empty */
     {
         /* no luck, use /tmp/ */
-        const char *defaultDir = "/tmp/";
+        const char *defaultDir = "/data/data/com.termux/files/usr/tmp/";
         int defaultDirLen = strlen(defaultDir);
         if (defaultDirLen < nBufferLength)
         {
