@@ -75,7 +75,7 @@ PEImageLayout* PEImageLayout::Map(HANDLE hFile, PEImage* pOwner)
         POSTCONDITION(RETVAL->CheckFormat());
     }
     CONTRACT_END;
-    
+
     PEImageLayoutHolder pAlloc(new MappedImageLayout(hFile,pOwner));
     if (pAlloc->GetBase()==NULL)
     {

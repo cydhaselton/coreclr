@@ -479,7 +479,6 @@ namespace BINDER_SPACE
 
         _ASSERTE(pdwPAFlags != NULL);
         _ASSERTE(PeKind != NULL);
-
         CorPEKind CLRPeKind = (CorPEKind) pdwPAFlags[0];
         DWORD dwImageType = pdwPAFlags[1];
 

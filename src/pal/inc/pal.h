@@ -3320,7 +3320,7 @@ PALIMPORT BOOL PALAPI PAL_VirtualUnwindOutOfProc(CONTEXT *context,
 #elif defined(__sun__)
 #define PAL_CS_NATIVE_DATA_SIZE 48
 #elif defined (__ANDROID__) && defined(_ARM64_)
-#define PAL_CS_NATIVE_DATA_SIZE 144
+#define PAL_CS_NATIVE_DATA_SIZE 90
 #else 
 #warning 
 #error  PAL_CS_NATIVE_DATA_SIZE is not defined for this architecture

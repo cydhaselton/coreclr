@@ -36,7 +36,7 @@
     <CLSCompliant>true</CLSCompliant>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);618</WarningsNotAsErrors>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);618;3021</WarningsNotAsErrors>
     <NoWarn>649,3019,414,169,3015</NoWarn>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 
@@ -224,7 +224,7 @@
     <Win32Resource Condition="'$(GenerateNativeVersionInfo)'=='true'">$(IntermediateOutputPath)\System.Private.CoreLib.res</Win32Resource>
   </PropertyGroup>
 
-  <Import Project="GenerateSplitStringResources.targets"/>
+ <!-- <Import Project="GenerateSplitStringResources.targets"/> -->
   <Import Project="GenerateCompilerResponseFile.targets"/>
   <Import Project="$(PostProcessingToolsPath)" />
 </Project>

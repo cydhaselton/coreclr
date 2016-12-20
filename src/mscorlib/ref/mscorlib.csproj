@@ -9,7 +9,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">$(BuildType)</Configuration>
     <PlatformTarget>AnyCPU</PlatformTarget>
-
+    <DefineConstants>BIT64;ARM64;$(DefineConstants)</DefineConstants>
     <ProjectGuid>{B8ADD332-40B6-4916-B418-FBB79E5898B3}</ProjectGuid>
 
     <OutputType>Library</OutputType>

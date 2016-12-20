@@ -170,7 +170,10 @@ static BYTE         g_pSharedDomainMemory[sizeof(SharedDomain)];
 // System Domain Statics
 GlobalStringLiteralMap* SystemDomain::m_pGlobalStringLiteralMap = NULL;
 
-static BYTE         g_pSystemDomainMemory[sizeof(SystemDomain)];
+//Android troubleshooting fix
+//static BYTE         g_pSystemDomainMemory[sizeof(SystemDomain)];
+
+static BYTE g_pSystemDomainMemory[sizeof(SystemDomain)] __attribute__((aligned(16)));
 
 #ifdef FEATURE_APPDOMAIN_RESOURCE_MONITORING
 size_t              SystemDomain::m_totalSurvivedBytes = 0;

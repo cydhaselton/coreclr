@@ -7,7 +7,7 @@
     <PreprocessFileTaskAsssemblyPath Condition="'$(PreprocessFileTaskAsssemblyPath)' == ''">$(BuildToolsTaskDir)Microsoft.DotNet.Build.Tasks.dll</PreprocessFileTaskAsssemblyPath>
   </PropertyGroup>
 
-  <UsingTask TaskName="PreprocessFile" AssemblyFile="$(PreprocessFileTaskAsssemblyPath)" />
+ <UsingTask TaskName="PreprocessFile" AssemblyFile="$(PreprocessFileTaskAsssemblyPath)" />
 
   <Target Name="GenerateSplitStringResources"
           Inputs="@(SplitTextStringResource)"

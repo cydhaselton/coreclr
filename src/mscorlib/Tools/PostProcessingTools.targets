@@ -8,7 +8,7 @@
     <Clean Include="$(FinalOutputPath)\$(TargetName).pdb" />
   </ItemGroup>
   
-  <Import Project="$(ToolsDir)toolruntime.targets" />
+  <!--<Import Project="$(ToolsDir)toolruntime.targets" />-->
 
   <PropertyGroup>
     <CurrentAssemblyPdb>$(IntermediateOutputPath)$(TargetName).pdb</CurrentAssemblyPdb>
