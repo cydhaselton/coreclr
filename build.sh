@@ -125,8 +125,8 @@ build_coreclr()
         #determine the logging system
         case $__BuildOS in
             Linux)
-                echo "Laying out dynamically generated Event Logging Implementation of Lttng"
-                $PYTHON -B -Wall -Werror "$__ProjectRoot/src/scripts/genXplatLttng.py" --man "$__ProjectRoot/src/vm/ClrEtwAll.man" --intermediate "$__GeneratedIntermediateEventProvider"
+  #              echo "Laying out dynamically generated Event Logging Implementation of Lttng"
+   #             $PYTHON -B -Wall -Werror "$__ProjectRoot/src/scripts/genXplatLttng.py" --man "$__ProjectRoot/src/vm/ClrEtwAll.man" --intermediate "$__GeneratedIntermediateEventProvider"
                 if  [[ $? != 0 ]]; then
                     exit
                 fi

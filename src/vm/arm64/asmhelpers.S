@@ -142,7 +142,15 @@ NESTED_END NDirectImportThunk, _TEXT
 // ------------------------------------------------------------------
 // ARM64TODO: Implement PrecodeFixupThunk when PreCode is Enabled
 NESTED_ENTRY PrecodeFixupThunk, _TEXT, NoHandler
-     brk #0
+     ldrb    w13, [x12, #Offset_PrecodeChunkIndex]   //m_PrecodeChunkIndex
+        ldrb    w14, [x12, #Offset_MethodDescChunkIndex]           // m_MethodDescChunkIndex
+
+        add     x12,x12,w13,uxtw #FixupPrecode_ALIGNMENT_SHIFT_1
+        add     x13,x12,w13,uxtw #FixupPrecode_ALIGNMENT_SHIFT_2
+        ldr     x13, [x13,#SIZEOF__FixupPrecode]
+        add     x12,x13,w14,uxtw #MethodDesc_ALIGNMENT_SHIFT
+
+        b ThePreStub
 NESTED_END PrecodeFixupThunk, _TEXT
 // ------------------------------------------------------------------
 
@@ -249,7 +257,6 @@ WRITE_BARRIER_ENTRY JIT_CheckedWriteBarrier
     ldr  x12, [x12] 
     cmp  x14, x12
     blt  C_FUNC(JIT_WriteBarrier)
-    EMIT_BREAKPOINT
 LOCAL_LABEL(NotInHeap):
     str  x15, [x14], 8
     ret  lr
