@@ -135,11 +135,11 @@ BOOL SEHInitializeSignals(DWORD flags)
 
        see sigaction man page for more details
        */
-    handle_signal(SIGILL, sigill_handler, &g_previous_sigill);
-    handle_signal(SIGTRAP, sigtrap_handler, &g_previous_sigtrap);
-    handle_signal(SIGFPE, sigfpe_handler, &g_previous_sigfpe);
-    handle_signal(SIGBUS, sigbus_handler, &g_previous_sigbus);
-    handle_signal(SIGSEGV, sigsegv_handler, &g_previous_sigsegv);
+    //handle_signal(SIGILL, sigill_handler, &g_previous_sigill);
+    //handle_signal(SIGTRAP, sigtrap_handler, &g_previous_sigtrap);
+    //handle_signal(SIGFPE, sigfpe_handler, &g_previous_sigfpe);
+    //handle_signal(SIGBUS, sigbus_handler, &g_previous_sigbus);
+    //handle_signal(SIGSEGV, sigsegv_handler, &g_previous_sigsegv);
     handle_signal(SIGINT, sigint_handler, &g_previous_sigint);
     handle_signal(SIGQUIT, sigquit_handler, &g_previous_sigquit);
 

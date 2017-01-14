@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/data/data/com.termux/files/usr/bin/bash
 #
 # This script executes PAL tests from the specified build location.
 #
@@ -39,16 +39,16 @@ cd $OLDPWD
 echo The list of PAL tests to run will be read from $PAL_TEST_LIST
 
 # Create the test output root directory
-mkdir -p /tmp/PalTestOutput
-if [ ! -d /tmp/PalTestOutput ]; then
-  rm -f -r /tmp/PalTestOutput
-  mkdir -p /tmp/PalTestOutput
+mkdir -p $PREFIX/tmp/PalTestOutput
+if [ ! -d $PREFIX/tmp/PalTestOutput ]; then
+  rm -f -r $PREFIX/tmp/PalTestOutput
+  mkdir -p $PREFIX/tmp/PalTestOutput
 fi
 
 # Determine the folder to use for PAL test output during the run, and the folder where output files were requested to be copied.
 # First check if the output folder was passed as a parameter to the script. It is supposed be the second parameter so check if
 # we have more than 1 argument.
-PAL_TEST_OUTPUT_DIR=/tmp/PalTestOutput/default
+PAL_TEST_OUTPUT_DIR=$PREFIX/tmp/PalTestOutput/default
 if [ $# -gt 1 ]
 then
   COPY_TO_TEST_OUTPUT_DIR=$2
@@ -60,7 +60,7 @@ fi
 if [ "$COPY_TO_TEST_OUTPUT_DIR" != "$PAL_TEST_OUTPUT_DIR" ]; then
   # Output files were requested to be copied to a specific folder. In this mode, we need to support parallel runs of PAL tests
   # on the same machine. Make a unique temp folder for working output inside /tmp/PalTestOutput.
-  PAL_TEST_OUTPUT_DIR=$(mktemp -d /tmp/PalTestOutput/tmp.XXXXXXXX)
+  PAL_TEST_OUTPUT_DIR=$(mktemp -d $PREFIX/tmp/PalTestOutput/tmp.XXXXXXXX)
 fi
 
 echo PAL tests will store their temporary files and output in $PAL_TEST_OUTPUT_DIR.

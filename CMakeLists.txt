@@ -278,7 +278,7 @@ set(CMAKE_EXE_LINKER_FLAGS_CHECKED "")
 set(CMAKE_SHARED_LINKER_FLAGS_CHECKED "")
 
 # Disable the following line for UNIX altjit on Windows
-set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -ldl -landroid-support -landroid-glob -lunwind-aarch64 -llog") # do not link against standard win32 libs i.e. kernel32, uuid, user32, etc.
+set(CMAKE_CXX_STANDARD_LIBRARIES "-lc -ldl -landroid-support -landroid-glob -lunwind -lunwind-setjmp -lunwind-aarch64 -llog") # do not link against standard win32 libs i.e. kernel32, uuid, user32, etc.
 
 if (WIN32)
   # For multi-configuration toolset (as Visual Studio)
