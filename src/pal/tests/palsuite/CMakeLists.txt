@@ -5,6 +5,7 @@ project(PALTESTSUITE)
 include_directories(${PALTESTSUITE_SOURCE_DIR}/common)
 
 # All test will link against these libraries:
+<<<<<<< HEAD
 # pthread and m are part of the Android C library (bionic),
 # so we don't need to link them seperately
 if(NOT CLR_CMAKE_PLATFORM_ANDROID)
@@ -13,6 +14,12 @@ if(NOT CLR_CMAKE_PLATFORM_ANDROID)
 endif()
 
 list(APPEND COMMON_TEST_LIBRARIES coreclrpal)
+=======
+set(COMMON_TEST_LIBRARIES
+    pthread
+    m
+    coreclrpal)
+>>>>>>> 597a7c02069d9ccd6e358c8eeaf4eaae75e875e9
 
 add_compile_options(-Wno-incompatible-pointer-types-discards-qualifiers)
 add_compile_options(-Wno-int-to-void-pointer-cast)
