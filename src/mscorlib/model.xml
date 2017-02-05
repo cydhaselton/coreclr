@@ -80,10 +80,6 @@
       <Member Name="CreateInstanceFrom(System.String,System.String)" />
       <Member Name="CreateInstanceFrom(System.String,System.String,System.Boolean,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object[],System.Globalization.CultureInfo,System.Object[])" />
       <Member Name="CreateInstanceFrom(System.String,System.String,System.Object[])" />
-      <Member Status="ImplRoot" Name="System.Runtime.InteropServices._Activator.GetIDsOfNames(System.Guid@,System.IntPtr,System.UInt32,System.UInt32,System.IntPtr)" />
-      <Member Status="ImplRoot" Name="System.Runtime.InteropServices._Activator.GetTypeInfo(System.UInt32,System.UInt32,System.IntPtr)" />
-      <Member Status="ImplRoot" Name="System.Runtime.InteropServices._Activator.GetTypeInfoCount(System.UInt32@)" />
-      <Member Status="ImplRoot" Name="System.Runtime.InteropServices._Activator.Invoke(System.UInt32,System.Guid@,System.UInt32,System.Int16,System.IntPtr,System.IntPtr,System.IntPtr,System.IntPtr)" />
     </Type>
     <Type Status="ImplRoot" Name="System.AppDomain">
       <Member Status="ImplRoot" Name="get_CurrentDomain" />
@@ -6605,36 +6601,6 @@
     <Type Name="System.Runtime.InteropServices.AllowReversePInvokeCallsAttribute">
       <Member Name="#ctor" />
     </Type>
-    <Type Name="System.Runtime.InteropServices.AutomationProxyAttribute">
-      <Member Name="#ctor(System.Boolean)" />
-      <Member Name="get_Value" />
-      <Member MemberType="Property" Name="Value" />      
-    </Type>
-   <Type Name="System.Runtime.InteropServices.ComAliasNameAttribute">
-      <Member Name="#ctor(System.String)" />
-      <Member Name="get_Value" />
-      <Member MemberType="Property" Name="Value" />      
-    </Type>
-    <Type Name="System.Runtime.InteropServices.ComCompatibleVersionAttribute">
-      <Member Name="#ctor(System.Int32,System.Int32,System.Int32,System.Int32)" />
-      <Member Name="get_MajorVersion" />
-      <Member MemberType="Property" Name="MajorVersion" />      
-      <Member Name="get_MinorVersion" />
-      <Member MemberType="Property" Name="MinorVersion" />      
-      <Member Name="get_BuildNumber" />
-      <Member MemberType="Property" Name="BuildNumber" />      
-      <Member Name="get_RevisionNumber" />
-      <Member MemberType="Property" Name="RevisionNumber" />      
-    </Type>    
-    <Type Name="System.Runtime.InteropServices.ComConversionLossAttribute">
-      <Member Name="#ctor" />
-    </Type>
-    <Type Name="System.Runtime.InteropServices.ComRegisterFunctionAttribute">
-      <Member Name="#ctor" />
-    </Type>
-    <Type Name="System.Runtime.InteropServices.ComUnregisterFunctionAttribute">
-      <Member Name="#ctor" />
-    </Type>
     <Type Name="System.Runtime.InteropServices.ExternalException">
       <Member Name="#ctor" />
       <Member Name="#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)" />
@@ -6696,11 +6662,6 @@
     <Type Name="System.Runtime.InteropServices.ICustomFactory">
       <Member Name="CreateInstance(System.Type)" />
     </Type>
-    <Type Name="System.Runtime.InteropServices.ImportedFromTypeLibAttribute">
-      <Member Name="#ctor(System.String)" />
-      <Member Name="get_Value" />
-      <Member MemberType="Property" Name="Value" />      
-    </Type>    
     <Type Name="System.Runtime.InteropServices.InAttribute">
       <Member Name="#ctor" />
     </Type>
@@ -6737,7 +6698,7 @@
     <Type Name="System.Runtime.InteropServices.LCIDConversionAttribute">
       <Member Name="#ctor(System.Int32)" />
       <Member Name="get_Value" />
-      <Member MemberType="Property" Name="Value" />      
+      <Member MemberType="Property" Name="Value" />
     </Type>
     <Type Name="System.Runtime.InteropServices.Marshal">
       <Member MemberType="Field" Name="SystemDefaultCharSize" />
@@ -6912,13 +6873,6 @@
       <Member MemberType="Field" Name="SafeArraySubType" />
       <Member MemberType="Field" Name="SafeArrayUserDefinedSubType" />
     </Type>
-    <Type Name="System.Runtime.InteropServices.ManagedToNativeComInteropStubAttribute">
-      <Member Name="#ctor(System.Type,System.String)" />
-      <Member Name="get_ClassType" />
-      <Member MemberType="Property" Name="ClassType" />      
-      <Member Name="get_MethodName" />
-      <Member MemberType="Property" Name="MethodName" />      
-    </Type>       
     <Type Name="System.Runtime.InteropServices.MarshalDirectiveException" >
       <Member Name="#ctor" />
       <Member Name="#ctor(System.String)" />
@@ -6939,17 +6893,10 @@
     <Type Name="System.Runtime.InteropServices.PreserveSigAttribute">
       <Member Name="#ctor" />
     </Type>
-    <Type Name="System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute">
-      <Member Name="#ctor(System.Int32,System.Int32)" />
-      <Member Name="get_MajorVersion" />
-      <Member MemberType="Property" Name="MajorVersion" />
-      <Member Name="get_MinorVersion" />
-      <Member MemberType="Property" Name="MinorVersion" />
-    </Type>    
     <Type Name="System.Runtime.InteropServices.ProgIdAttribute">
       <Member Name="#ctor(System.String)" />
       <Member Name="get_Value" />
-      <Member MemberType="Property" Name="Value" />      
+      <Member MemberType="Property" Name="Value" />
     </Type>
     <Type Name="System.Runtime.InteropServices.SafeHandle">
       <Member MemberType="Field" Name="handle" />
@@ -6970,18 +6917,6 @@
       <Member MemberType="Property" Name="IsClosed" />
       <Member MemberType="Property" Name="IsInvalid" />
     </Type>
-   <Type Name="System.Runtime.InteropServices.TypeLibImportClassAttribute">
-      <Member Name="#ctor(System.Type)" />
-      <Member Name="get_Value" />
-      <Member MemberType="Property" Name="Value" />
-    </Type>
-    <Type Name="System.Runtime.InteropServices.TypeLibVersionAttribute">
-      <Member Name="#ctor(System.Int32,System.Int32)" />
-      <Member Name="get_MajorVersion" />
-      <Member MemberType="Property" Name="MajorVersion" />
-      <Member Name="get_MinorVersion" />
-      <Member MemberType="Property" Name="MinorVersion" />
-    </Type>       
     <Type Name="System.Runtime.InteropServices.CriticalHandle">
       <Member MemberType="Field" Name="handle" />
       <Member MemberType="Field" Name="_stackTrace" Flavor="chk,dbg" />
@@ -8219,6 +8154,19 @@
       <Member Name="UnsafePack(System.Threading.IOCompletionCallback,System.Object)" Condition="FEATURE_COMINTEROP" />
     </Type>
     <Type Name="System.Threading.IOCompletionCallback">
+    </Type>
+    <Type Name="System.Threading.PreAllocatedOverlapped">
+      <Member Name="#ctor(System.Threading.IOCompletionCallback,System.Object,System.Object)" />
+      <Member Name="Dispose" />
+    </Type>
+    <Type Name="System.Threading.ThreadPoolBoundHandle">
+      <Member Name="get_Handle" />      
+      <Member Name="AllocateNativeOverlapped(System.Threading.IOCompletionCallback,System.Object,System.Object)" />
+      <Member Name="AllocateNativeOverlapped(System.Threading.PreAllocatedOverlapped)" />
+      <Member Name="BindHandle(System.Runtime.InteropServices.SafeHandle)" />
+      <Member Name="Dispose" />
+      <Member Name="FreeNativeOverlapped(System.Threading.NativeOverlapped*)" />
+      <Member Name="GetNativeOverlappedState(System.Threading.NativeOverlapped*)" />
     </Type>
     <Type Name="System.Threading.RegisteredWaitHandle">
       <Member Name="Unregister(System.Threading.WaitHandle)" />
@@ -11136,13 +11084,6 @@
       <Member MemberType="Property" Name="BestFitMapping" />
       <Member Name="get_BestFitMapping" />
     </Type>
-    <Type Name="System.Runtime.InteropServices.ComEventInterfaceAttribute">
-      <Member Name="#ctor(System.Type,System.Type)" />
-      <Member MemberType="Property" Name="EventProvider" />
-      <Member MemberType="Property" Name="SourceInterface" />
-      <Member Name="get_EventProvider" />
-      <Member Name="get_SourceInterface" />
-    </Type>
     <Type Name="System.Runtime.InteropServices.ComEventsHelper">
       <Member Name="Combine(System.Object,System.Guid,System.Int32,System.Delegate)" />
       <Member Name="Remove(System.Object,System.Guid,System.Int32,System.Delegate)" />
@@ -12647,7 +12588,7 @@
       <Member Name="get_TraceLevel" />
     </Type>
     <!--End of PFX types -->
-    <Type Name="System.Console">
+    <Type Name="System.LowLevelConsole">
       <Member Name="Write(System.String)" />
       <Member Name="WriteLine(System.String)" />
       <Member Name="WriteLine" />

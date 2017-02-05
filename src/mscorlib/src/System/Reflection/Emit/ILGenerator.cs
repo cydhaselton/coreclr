@@ -15,10 +15,7 @@ namespace System.Reflection.Emit
     using System.Diagnostics;
     using System.Diagnostics.Contracts;
     
-    [ClassInterface(ClassInterfaceType.None)]
-    [ComDefaultInterface(typeof(_ILGenerator))]
-    [System.Runtime.InteropServices.ComVisible(true)]
-    public class ILGenerator : _ILGenerator
+    public class ILGenerator
     {
         #region Const Members
         private const int defaultSize = 16;
@@ -536,51 +533,6 @@ namespace System.Reflection.Emit
             stackchange--;
             UpdateStackSize(OpCodes.Calli, stackchange);
 
-            RecordTokenFixup();
-            PutInteger4(modBuilder.GetSignatureToken(sig).Token);
-        }
-
-        public virtual void EmitCalli(OpCode opcode, CallingConvention unmanagedCallConv, Type returnType, Type[] parameterTypes)
-        {
-            int             stackchange = 0;
-            int             cParams = 0;
-            int             i;
-            SignatureHelper sig;
-            
-            ModuleBuilder modBuilder = (ModuleBuilder) m_methodBuilder.Module;
-
-            if (parameterTypes != null)
-            {
-                cParams = parameterTypes.Length;
-            }
-            
-            sig = SignatureHelper.GetMethodSigHelper(
-                modBuilder, 
-                unmanagedCallConv, 
-                returnType);
-                            
-            if (parameterTypes != null)
-            {
-                for (i = 0; i < cParams; i++) 
-                {
-                    sig.AddArgument(parameterTypes[i]);
-                }
-            }
-                                  
-            // If there is a non-void return type, push one.
-            if (returnType != typeof(void))
-                stackchange++;
-                
-            // Pop off arguments if any.
-            if (parameterTypes != null)
-                stackchange -= cParams;
-                
-            // Pop the native function pointer.
-            stackchange--;
-            UpdateStackSize(OpCodes.Calli, stackchange);
-
-            EnsureCapacity(7);
-            Emit(OpCodes.Calli);
             RecordTokenFixup();
             PutInteger4(modBuilder.GetSignatureToken(sig).Token);
         }

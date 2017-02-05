@@ -3063,7 +3063,7 @@ void EECodeManager::EnsureCallerContextIsValid( PREGDISPLAY  pRD, StackwalkCache
 
     if( !pRD->IsCallerContextValid )
     {
-#if !defined(DACCESS_COMPILE)
+#if !defined(DACCESS_COMPILE) && defined(HAS_QUICKUNWIND)
         if (pCacheEntry != NULL)
         {
             // lightened schema: take stack unwind info from stackwalk cache
@@ -3104,6 +3104,7 @@ size_t EECodeManager::GetCallerSp( PREGDISPLAY  pRD )
 
 #endif // WIN64EXCEPTIONS && !CROSSGEN_COMPILE
 
+#ifdef HAS_QUICKUNWIND
 /*
   *  Light unwind the current stack frame, using provided cache entry.
   *  pPC, Esp and pEbp of pContext are updated.
@@ -3194,6 +3195,7 @@ void EECodeManager::QuickUnwindStackFrame(PREGDISPLAY pRD, StackwalkCacheEntry *
     PORTABILITY_ASSERT("EECodeManager::QuickUnwindStackFrame is not implemented on this platform.");
 #endif // !_TARGET_X86_ && !_TARGET_AMD64_
 }
+#endif // HAS_QUICKUNWIND
 
 /*****************************************************************************/
 #ifdef _TARGET_X86_ // UnwindStackFrame
@@ -5026,6 +5028,7 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pContext,
 
 #endif // _TARGET_X86_
 
+#ifdef _TARGET_X86_
 /*****************************************************************************
  *
  *  Return the address of the local security object reference
@@ -5036,18 +5039,15 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pContext,
 OBJECTREF* EECodeManager::GetAddrOfSecurityObjectFromCachedInfo(PREGDISPLAY pRD, StackwalkCacheUnwindInfo * stackwalkCacheUnwindInfo)
 {
     LIMITED_METHOD_CONTRACT;
-#ifdef _TARGET_X86_
     size_t securityObjectOffset = stackwalkCacheUnwindInfo->securityObjectOffset;
+
     _ASSERTE(securityObjectOffset != 0);
     // We pretend that filters are ESP-based methods in UnwindEbpDoubleAlignFrame().
     // Hence we cannot enforce this assert.
     // _ASSERTE(stackwalkCacheUnwindInfo->fUseEbpAsFrameReg);
     return (OBJECTREF *) (size_t) (*pRD->GetEbpLocation() - (securityObjectOffset * sizeof(void*)));
-#else
-    PORTABILITY_ASSERT("EECodeManager::GetAddrOfSecurityObjectFromContext is not implemented on this platform.");
-    return NULL;
-#endif
 }
+#endif // _TARGET_X86_
 
 #ifndef DACCESS_COMPILE
 OBJECTREF* EECodeManager::GetAddrOfSecurityObject(CrawlFrame *pCF)
@@ -5468,6 +5468,13 @@ void * EECodeManager::GetGSCookieAddr(PREGDISPLAY     pContext,
     GCInfoToken    gcInfoToken = pCodeInfo->GetGCInfoToken();
     unsigned       relOffset = pCodeInfo->GetRelOffset();
 
+#ifdef WIN64EXCEPTIONS
+    if (pCodeInfo->IsFunclet())
+    {
+        return NULL;
+    }
+#endif
+
 #if defined(_TARGET_X86_)
     CodeManStateBuf * stateBuf = (CodeManStateBuf*)pState->stateBuf;
     
@@ -5507,11 +5514,6 @@ void * EECodeManager::GetGSCookieAddr(PREGDISPLAY     pContext,
     }
 
 #elif defined(USE_GC_INFO_DECODER)
-    if (pCodeInfo->IsFunclet())
-    {
-        return NULL;
-    }
-
     GcInfoDecoder gcInfoDecoder(
             gcInfoToken,
             DECODE_GS_COOKIE
@@ -5697,16 +5699,12 @@ unsigned int EECodeManager::GetFrameSize(GCInfoToken gcInfoToken)
 
 /*****************************************************************************/
 
+#ifndef WIN64EXCEPTIONS
 const BYTE* EECodeManager::GetFinallyReturnAddr(PREGDISPLAY pReg)
 {
     LIMITED_METHOD_CONTRACT;
 
-#ifdef _TARGET_X86_
     return *(const BYTE**)(size_t)(GetRegdisplaySP(pReg));
-#else
-    PORTABILITY_ASSERT("EECodeManager::GetFinallyReturnAddr is not implemented on this platform.");
-    return NULL;
-#endif
 }
 
 BOOL EECodeManager::IsInFilter(GCInfoToken gcInfoToken,
@@ -5718,8 +5716,6 @@ BOOL EECodeManager::IsInFilter(GCInfoToken gcInfoToken,
         NOTHROW;
         GC_NOTRIGGER;
     } CONTRACTL_END;
-
-#ifdef _TARGET_X86_
 
     /* Extract the necessary information from the info block header */
 
@@ -5745,15 +5741,9 @@ BOOL EECodeManager::IsInFilter(GCInfoToken gcInfoToken,
 //    _ASSERTE(nestingLevel == curNestLevel);
 
     return frameType == FR_FILTER;
-
-#else
-    PORTABILITY_ASSERT("EECodeManager::IsInFilter is not implemented on this platform.");
-    return FALSE;
-#endif
 }
 
 
-#ifndef WIN64EXCEPTIONS
 BOOL EECodeManager::LeaveFinally(GCInfoToken gcInfoToken,
                                 unsigned offset,
                                 PCONTEXT pCtx)

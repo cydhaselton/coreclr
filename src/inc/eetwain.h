@@ -36,6 +36,9 @@
 #define USE_GC_INFO_DECODER
 #endif
 
+#if (defined(_TARGET_X86_) && !defined(FEATURE_PAL)) || defined(_TARGET_AMD64_)
+#define HAS_QUICKUNWIND
+#endif
 
 #if CHECK_APP_DOMAIN_LEAKS
 #define CHECK_APP_DOMAIN    GC_CALL_CHECK_APP_DOMAIN
@@ -319,6 +322,7 @@ virtual unsigned int GetFrameSize(GCInfoToken gcInfoToken) = 0;
 
 /* Debugger API */
 
+#ifndef WIN64EXCEPTIONS
 virtual const BYTE*     GetFinallyReturnAddr(PREGDISPLAY pReg)=0;
 
 virtual BOOL            IsInFilter(GCInfoToken gcInfoToken,
@@ -326,7 +330,6 @@ virtual BOOL            IsInFilter(GCInfoToken gcInfoToken,
                                    PCONTEXT pCtx,
                                    DWORD curNestLevel) = 0;
 
-#ifndef WIN64EXCEPTIONS
 virtual BOOL            LeaveFinally(GCInfoToken gcInfoToken,
                                      unsigned offset,
                                      PCONTEXT pCtx) = 0;
@@ -434,6 +437,7 @@ bool UnwindStackFrame(
                 StackwalkCacheUnwindInfo  *pUnwindInfo);
 #endif // CROSSGEN_COMPILE
 
+#ifdef HAS_QUICKUNWIND
 enum QuickUnwindFlag
 {
     UnwindCurrentStackFrame,
@@ -450,6 +454,7 @@ void QuickUnwindStackFrame(
              PREGDISPLAY pRD,
              StackwalkCacheEntry *pCacheEntry,
              QuickUnwindFlag flag);
+#endif // HAS_QUICKUNWIND
 
 /*
     Is the function currently at a "GC safe point" ?
@@ -496,6 +501,7 @@ bool EnumGcRefsConservative(PREGDISPLAY     pRD,
                             LPVOID          hCallBack);
 #endif // FEATURE_CONSERVATIVE_GC
 
+#ifdef _TARGET_X86_
 /*
    Return the address of the local security object reference
    using data that was previously cached before in UnwindStackFrame
@@ -504,6 +510,7 @@ bool EnumGcRefsConservative(PREGDISPLAY     pRD,
 static OBJECTREF* GetAddrOfSecurityObjectFromCachedInfo(
         PREGDISPLAY pRD,
         StackwalkCacheUnwindInfo * stackwalkCacheUnwindInfo);
+#endif // _TARGET_X86_
 
 virtual
 OBJECTREF* GetAddrOfSecurityObject(CrawlFrame *pCF) DAC_UNEXPECTED();
@@ -591,12 +598,12 @@ unsigned int GetFrameSize(GCInfoToken gcInfoToken);
 
 #ifndef DACCESS_COMPILE
 
+#ifndef WIN64EXCEPTIONS
 virtual const BYTE* GetFinallyReturnAddr(PREGDISPLAY pReg);
 virtual BOOL IsInFilter(GCInfoToken gcInfoToken,
                         unsigned offset,
                         PCONTEXT pCtx,
                           DWORD curNestLevel);
-#ifndef WIN64EXCEPTIONS
 virtual BOOL LeaveFinally(GCInfoToken gcInfoToken,
                           unsigned offset,
                           PCONTEXT pCtx);

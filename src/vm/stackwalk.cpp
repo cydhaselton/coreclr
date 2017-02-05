@@ -2464,7 +2464,7 @@ StackWalkAction StackFrameIterator::NextRaw(void)
              DBG_ADDR(GetRegdisplaySP(m_crawl.pRD)), 
              DBG_ADDR(GetControlPC(m_crawl.pRD))));
 
-#if !defined(DACCESS_COMPILE)
+#if !defined(DACCESS_COMPILE) && defined(HAS_QUICKUNWIND)
         StackwalkCacheEntry *pCacheEntry = m_crawl.GetStackwalkCacheEntry();
         if (pCacheEntry != NULL)
         {
@@ -2474,7 +2474,7 @@ StackWalkAction StackFrameIterator::NextRaw(void)
             EECodeManager::QuickUnwindStackFrame(m_crawl.pRD, pCacheEntry, EECodeManager::UnwindCurrentStackFrame);
         }
         else
-#endif // !DACCESS_COMPILE
+#endif // !DACCESS_COMPILE && HAS_QUICKUNWIND
         {
 #if !defined(DACCESS_COMPILE)
             // non-optimized stack unwind schema, doesn't use StackwalkCache
@@ -2672,12 +2672,11 @@ StackWalkAction StackFrameIterator::NextRaw(void)
 #endif // !_TARGET_X86_
 
 
+#if defined(_DEBUG) && !defined(DACCESS_COMPILE) && !defined(WIN64EXCEPTIONS)
                 // We are transitioning from unmanaged code to managed code... lets do some validation of our
                 // EH mechanism on platforms that we can.
-#if defined(_DEBUG)  && !defined(DACCESS_COMPILE) && (defined(_TARGET_X86_) && !defined(FEATURE_PAL)) && !defined(WIN64EXCEPTIONS)               
-                // TODO: Revise this once we enable WIN64EXCEPTIONS for x86/Linux
                 VerifyValidTransitionFromManagedCode(m_crawl.pThread, &m_crawl);
-#endif // _DEBUG && !DACCESS_COMPILE && _TARGET_X86_ && !WIN64EXCEPTIONS
+#endif // _DEBUG && !DACCESS_COMPILE &&  !WIN64EXCEPTIONS
             }
         }
 
