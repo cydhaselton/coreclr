@@ -17,7 +17,6 @@
 
 using System.Collections.Generic;
 using System.Security;
-using System.Security.Permissions;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
@@ -26,7 +25,6 @@ using System.Diagnostics.Contracts;
 
 namespace System.IO
 {
-    [ComVisible(true)]
     internal static class Directory {
 
         // Private class that holds search data that is passed around 

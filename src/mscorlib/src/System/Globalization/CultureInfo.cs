@@ -36,7 +36,6 @@ namespace System.Globalization {
     using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
     using System.Runtime.Versioning;
-    using System.Security.Permissions;
     using System.Reflection;
     using Microsoft.Win32;
     using System.Diagnostics;
@@ -44,7 +43,6 @@ namespace System.Globalization {
     using System.Resources;
 
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     public partial class CultureInfo : ICloneable, IFormatProvider {
         //--------------------------------------------------------------------//
         //                        Internal Information                        //
@@ -862,7 +860,6 @@ namespace System.Globalization {
         //
         ////////////////////////////////////////////////////////////////////////
 #if FEATURE_USE_LCID
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual int KeyboardLayoutId
         {
             get
@@ -923,7 +920,6 @@ namespace System.Globalization {
             }
         }
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public String IetfLanguageTag
         {
             get
@@ -1171,7 +1167,6 @@ namespace System.Globalization {
             }
         }
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public CultureTypes CultureTypes
         {
             get
@@ -1386,7 +1381,6 @@ namespace System.Globalization {
             }
         }
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public CultureInfo GetConsoleFallbackUICulture()
         {
             Contract.Ensures(Contract.Result<CultureInfo>() != null);
@@ -1848,9 +1842,6 @@ namespace System.Globalization {
         [DllImport(JitHelpers.QCall, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool InternalGetSystemDefaultUILanguage(StringHandleOnStack systemDefaultUiLanguage);
-
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        internal static extern String[] nativeGetResourceFallbackArray();
     }
 }
 

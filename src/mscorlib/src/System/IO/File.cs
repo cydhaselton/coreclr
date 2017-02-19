@@ -14,7 +14,6 @@
 **
 ===========================================================*/
 
-using System.Security.Permissions;
 using Win32Native = Microsoft.Win32.Win32Native;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -28,7 +27,6 @@ namespace System.IO
 {
     // Class for creating FileStream objects, and some basic file management
     // routines such as Delete, etc.
-    [ComVisible(true)]
     internal static class File
     {
         private const int ERROR_INVALID_PARAMETER = 87;

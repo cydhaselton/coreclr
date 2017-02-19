@@ -16,7 +16,6 @@ namespace System
     using System.Threading;
     using System.Runtime.Remoting;
     using System.Security;
-    using System.Security.Util;
     using System.Runtime.CompilerServices;
     using System.Runtime.ConstrainedExecution;
     using System.Diagnostics;
@@ -35,18 +34,11 @@ namespace System
             BCLDebug.Assert(false, "SharedStatics..ctor() is never called.");
         }
 
-        private volatile String _Remoting_Identity_IDGuid;
-
-        // Note this may not need to be process-wide.
-        private int _Remoting_Identity_IDSeqNum;
-
-
         // This is the total amount of memory currently "reserved" via
         // all MemoryFailPoints allocated within the process.
         // Stored as a long because we need to use Interlocked.Add.
         private long _memFailPointReservedMemory;
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal static long AddMemoryFailPointReservation(long size)
         {
             // Size can legitimately be negative - see Dispose.

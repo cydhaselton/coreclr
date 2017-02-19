@@ -22,7 +22,6 @@ def static getOSGroup(def os) {
         'Windows_NT':'Windows_NT',
         'FreeBSD':'FreeBSD',
         'CentOS7.1': 'Linux',
-        'OpenSUSE13.2': 'Linux',
         'OpenSUSE42.1': 'Linux',
         'LinuxARMEmulator': 'Linux']
     def osGroup = osGroupMap.get(os, null) 
@@ -45,7 +44,6 @@ class Constants {
                'Windows_NT_BuildOnly',
                'FreeBSD',
                'CentOS7.1',
-               'OpenSUSE13.2',
                'OpenSUSE42.1',
                'RHEL7.2',
                'LinuxARMEmulator',
@@ -53,7 +51,7 @@ class Constants {
                'Ubuntu16.10',
                'Fedora23']
 
-    def static crossList = ['Ubuntu', 'OSX', 'CentOS7.1', 'RHEL7.2', 'Debian8.4', 'OpenSUSE13.2']
+    def static crossList = ['Ubuntu', 'OSX', 'CentOS7.1', 'RHEL7.2', 'Debian8.4']
 
     // This is a set of JIT stress modes combined with the set of variables that
     // need to be set to actually enable that stress mode.  The key of the map is the stress mode and
@@ -590,7 +588,7 @@ def static addTriggers(def job, def branch, def isPR, def architecture, def os, 
         return
     }
     
-    def bidailyCrossList = ['RHEL7.2', 'Debian8.4', 'OpenSUSE13.2']
+    def bidailyCrossList = ['RHEL7.2', 'Debian8.4']
     // Non pull request builds.
     if (!isPR) {
         addNonPRTriggers(job, branch, isPR, architecture, os, configuration, scenario, isFlowJob, isWindowsBuildOnlyJob, isLinuxEmulatorBuild, bidailyCrossList)
@@ -619,7 +617,6 @@ def static addTriggers(def job, def branch, def isPR, def architecture, def os, 
 
             switch (os) {
                 // OpenSUSE, Debian & RedHat get trigger phrases for pri 0 build, and pri 1 build & test
-                case 'OpenSUSE13.2':
                 case 'Debian8.4':
                 case 'RHEL7.2':
                     if (scenario == 'default') {
@@ -1186,13 +1183,46 @@ def static addTriggers(def job, def branch, def isPR, def architecture, def os, 
                contextString += " and Test"
             }
 
-            def arm64Users = ['erozenfeld', 'kyulee1', 'pgavlin', 'russellhadley', 'swaroop-sridhar', 'JosephTremoulet', 'jashook', 'RussKeldorph', 'gkhanna79', 'briansull', 'cmckinsey', 'jkotas', 'ramarag', 'markwilkie', 'rahku', 'tzwlai', 'weshaggard']
+            def arm64Users = [
+                'adiaaida',
+                'AndyAyersMS',
+                'briansull',
+                'BruceForstall',
+                'CarolEidt',
+                'cmckinsey',
+                'erozenfeld',
+                'jashook',
+                'JosephTremoulet',
+                'pgavlin',
+                'pkukol',
+                'russellhadley',
+                'RussKeldorph',
+                'sandreenko',
+                'sivarv',
+                'swaroop-sridhar',
+                'gkhanna79',
+                'jkotas',
+                'markwilkie',
+                'rahku',
+                'ramarag',
+                'tzwlai',
+                'weshaggard'
+            ]
+
             switch (os) {
                 case 'Windows_NT':
                     switch (scenario) {
                         case 'default':
-                            Utilities.addPrivateGithubPRTriggerForBranch(job, branch, contextString,
-                            "(?i).*test\\W+${os}\\W+${architecture}\\W+${configuration}.*", null, arm64Users)
+                            // For now only run Debug jobs on PR Trigger.
+                            if (configuration != 'Debug') {
+                                Utilities.addPrivateGithubPRTriggerForBranch(job, branch, contextString,
+                                "(?i).*test\\W+${os}\\W+${architecture}\\W+${configuration}.*", null, arm64Users)
+                            }
+                            else {
+                                // Add "Checked Build And Test" and "Debug Build" to the above users' PRs since many of them
+                                // are at higher risk of ARM64-breaking changes.
+                                Utilities.addDefaultPrivateGithubPRTriggerForBranch(job, branch, contextString, null, arm64Users)
+                            }
                             break
                         case 'pri1r2r':
                         case 'gcstress0x3':
@@ -2003,6 +2033,9 @@ def static calculateBuildCommands(def newJob, def scenario, def branch, def isPR
                        buildCommands += "set __TestIntermediateDir=int&&build.cmd ${lowerConfiguration} ${architecture} toolset_dir C:\\ats2"
                     }
                     else {
+                       // Up the timeout for arm64 testing.
+                       Utilities.setJobTimeout(newJob, 240)
+
                        buildCommands += "set __TestIntermediateDir=int&&build.cmd skiptests ${lowerConfiguration} ${architecture} toolset_dir C:\\ats2"
                        // Test build and run are launched together.
                        buildCommands += "python tests\\scripts\\arm64_post_build.py -repo_root %WORKSPACE% -arch ${architecture} -build_type ${lowerConfiguration} -scenario ${scenario} -key_location C:\\tools\\key.txt"
@@ -2027,7 +2060,6 @@ def static calculateBuildCommands(def newJob, def scenario, def branch, def isPR
         case 'FreeBSD':
         case 'CentOS7.1':
         case 'RHEL7.2':
-        case 'OpenSUSE13.2':
         case 'OpenSUSE42.1':
         case 'Fedora23': // editor brace matching: {
             switch (architecture) {
@@ -2054,7 +2086,7 @@ def static calculateBuildCommands(def newJob, def scenario, def branch, def isPR
                     if (!enableCorefxTesting) {
                         // We run pal tests on all OS but generate mscorlib (and thus, nuget packages)
                         // only on supported OS platforms.
-                        if ((os == 'FreeBSD') || (os == 'OpenSUSE13.2'))
+                        if (os == 'FreeBSD')
                         {
                             buildCommands += "./build.sh skipmscorlib verbose ${lowerConfiguration} ${arch} ${standaloneGc}"
                         }
@@ -2509,7 +2541,7 @@ combinedScenarios.each { scenario ->
                             return
                         }
                         //Skip stress modes for these scenarios
-                        if (os == 'RHEL7.2' || os == 'Debian8.4' || os == 'OpenSUSE13.2') {
+                        if (os == 'RHEL7.2' || os == 'Debian8.4') {
                             return
                         }
                     }
@@ -2531,8 +2563,8 @@ combinedScenarios.each { scenario ->
                             return
                         }
                     }
-                    // For RedHat, Debian, and OpenSUSE, we only do Release pri1 builds.
-                    else if (os == 'RHEL7.2' || os == 'Debian8.4' || os == 'OpenSUSE13.2') {
+                    // For RedHat and Debian, we only do Release pri1 builds.
+                    else if (os == 'RHEL7.2' || os == 'Debian8.4') {
                         if (scenario != 'pri1') {
                             return
                         }

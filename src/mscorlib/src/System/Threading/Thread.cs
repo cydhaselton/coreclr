@@ -19,8 +19,6 @@ namespace System.Threading {
     using System.Runtime;
     using System.Runtime.InteropServices;
     using System;
-    using System.Security.Permissions;
-    using System.Security.Principal;
     using System.Globalization;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -206,7 +204,6 @@ namespace System.Threading {
             SetStartHelper((Delegate)start, maxStackSize);
         }
 
-        [ComVisible(false)]
         public override int GetHashCode()
         {
             return m_ManagedThreadId;
@@ -214,7 +211,6 @@ namespace System.Threading {
 
         extern public new int ManagedThreadId
         {
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
             [MethodImplAttribute(MethodImplOptions.InternalCall)]
             get;
         }
@@ -241,14 +237,14 @@ namespace System.Threading {
         **
         ** Exceptions: ThreadStateException if the thread has already been started.
         =========================================================================*/
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public new void Start()
         {
             StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
             Start(ref stackMark);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public new void Start(object parameter)
         {
             //In the case of a null delegate (second call to start on same thread)
@@ -280,14 +276,11 @@ namespace System.Threading {
                 // If we reach here with a null delegate, something is broken. But we'll let the StartInternal method take care of
                 // reporting an error. Just make sure we dont try to dereference a null delegate.
                 ThreadHelper t = (ThreadHelper)(m_Delegate.Target);
-                ExecutionContext ec = ExecutionContext.Capture(
-                    ref stackMark,
-                    ExecutionContext.CaptureOptions.IgnoreSyncCtx);
+                ExecutionContext ec = ExecutionContext.Capture();
                 t.SetExecutionContextHelper(ec);
             }
 
-            IPrincipal principal = null;
-            StartInternal(principal, ref stackMark);
+            StartInternal(ref stackMark);
         }
 
         internal ExecutionContext ExecutionContext
@@ -303,7 +296,7 @@ namespace System.Threading {
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        private extern void StartInternal(IPrincipal principal, ref StackCrawlMark stackMark);
+        private extern void StartInternal(ref StackCrawlMark stackMark);
 
 
         // Helper method to get a logical thread ID for StringBuilder (for
@@ -345,10 +338,8 @@ namespace System.Threading {
            a explict busy loop because the hardware can be informed that it is busy waiting. */
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         private static extern void SpinWaitInternal(int iterations);
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public static new void SpinWait(int iterations)
         {
             SpinWaitInternal(iterations);
@@ -356,17 +347,14 @@ namespace System.Threading {
 
         [DllImport(JitHelpers.QCall, CharSet = CharSet.Unicode)]
         [SuppressUnmanagedCodeSecurity]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         private static extern bool YieldInternal();
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal static new bool Yield()
         {
             return YieldInternal();
         }
         
         public static new Thread CurrentThread {
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
             get {
                 Contract.Ensures(Contract.Result<Thread>() != null);
                 return GetCurrentThreadNative();
@@ -400,14 +388,12 @@ namespace System.Threading {
         /*=========================================================================
         ** Clean up the thread when it goes away.
         =========================================================================*/
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         ~Thread()
         {
             // Delegate to the unmanaged portion.
             InternalFinalize();
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         private extern void InternalFinalize();
 
@@ -622,7 +608,7 @@ namespace System.Threading {
         /*
          *  This returns a unique id to identify an appdomain.
          */
-        public static int GetDomainID()
+        internal static int GetDomainID()
         {
             return GetDomain().GetId();
         }

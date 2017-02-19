@@ -15,7 +15,6 @@ namespace System.Reflection
     using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
-    using System.Security.Permissions;
     using System.Text;
     using RuntimeTypeCache = System.RuntimeType.RuntimeTypeCache;
 
@@ -193,7 +192,6 @@ namespace System.Reflection
         #endregion
 
         #region Internal Members
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal override bool CacheEquals(object o)
         {
             RuntimePropertyInfo m = o as RuntimePropertyInfo;

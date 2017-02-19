@@ -21,7 +21,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Security.Permissions;
 using Microsoft.Win32;
 
 namespace System.Threading
@@ -714,7 +713,6 @@ namespace System.Threading
             registeredWaitHandle = handle;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         internal void SetWaitObject(WaitHandle waitObject)
         {
             // needed for DangerousAddRef
@@ -732,7 +730,6 @@ namespace System.Threading
             }
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         internal bool Unregister(
              WaitHandle     waitObject          // object to be notified when all callbacks to delegates have completed
              )
@@ -844,7 +841,6 @@ namespace System.Threading
         private static extern bool UnregisterWaitNative(IntPtr handle, SafeHandle waitObject);
     }
 
-    [System.Runtime.InteropServices.ComVisible(true)]
     public sealed class RegisteredWaitHandle : MarshalByRefObject {
         private readonly RegisteredWaitHandleSafe internalRegisteredWait;
     
@@ -863,7 +859,6 @@ namespace System.Threading
            internalRegisteredWait.SetWaitObject(waitObject);
         }
 
-        [System.Runtime.InteropServices.ComVisible(true)]
         // This is the only public method on this class
         public bool Unregister(
              WaitHandle     waitObject          // object to be notified when all callbacks to delegates have completed
@@ -873,10 +868,8 @@ namespace System.Threading
         }
     }
     
-    [System.Runtime.InteropServices.ComVisible(true)]
     public delegate void WaitCallback(Object state);
 
-    [System.Runtime.InteropServices.ComVisible(true)]
     public delegate void WaitOrTimerCallback(Object state, bool timedOut);  // signalled or timed out
 
     //
@@ -951,7 +944,7 @@ namespace System.Threading
             }
             else
             {
-                ExecutionContext.Run(context, ccb, this, preserveSyncCtx:true);
+                ExecutionContext.Run(context, ccb, this);
             }
         }
 
@@ -1010,7 +1003,7 @@ namespace System.Threading
 #if DEBUG
             MarkExecuted(aborted:false);
 #endif
-            ExecutionContext.Run(ExecutionContext.PreAllocatedDefault, ccb, this, preserveSyncCtx:true);
+            ExecutionContext.Run(ExecutionContext.Default, ccb, this);
         }
 
         void IThreadPoolWorkItem.MarkAborted(ThreadAbortException tae)
@@ -1042,17 +1035,15 @@ namespace System.Threading
         private static readonly ContextCallback _ccbt = new ContextCallback(WaitOrTimerCallback_Context_t);
         private static readonly ContextCallback _ccbf = new ContextCallback(WaitOrTimerCallback_Context_f);
 
-        internal _ThreadPoolWaitOrTimerCallback(WaitOrTimerCallback waitOrTimerCallback, Object state, bool compressStack, ref StackCrawlMark stackMark)
+        internal _ThreadPoolWaitOrTimerCallback(WaitOrTimerCallback waitOrTimerCallback, Object state, bool compressStack)
         {
             _waitOrTimerCallback = waitOrTimerCallback;
             _state = state;
 
-            if (compressStack && !ExecutionContext.IsFlowSuppressed())
+            if (compressStack)
             {
                 // capture the exection context
-                _executionContext = ExecutionContext.Capture(
-                    ref stackMark,
-                    ExecutionContext.CaptureOptions.IgnoreSyncCtx | ExecutionContext.CaptureOptions.OptimizeDefaultCase);
+                _executionContext = ExecutionContext.Capture();
             }
         }
         
@@ -1081,17 +1072,13 @@ namespace System.Threading
             }
             else
             {
-                using (ExecutionContext executionContext = helper._executionContext.CreateCopy())
-                {
-                    ExecutionContext.Run(executionContext, timedOut ? _ccbt : _ccbf, helper, preserveSyncCtx:true);
-                }
+                ExecutionContext.Run(helper._executionContext, timedOut ? _ccbt : _ccbf, helper);
             }
         }    
 
     }
 
     [CLSCompliant(false)]
-    [System.Runtime.InteropServices.ComVisible(true)]
     unsafe public delegate void IOCompletionCallback(uint errorCode, // Error code
                                        uint numBytes, // No. of bytes transferred 
                                        NativeOverlapped* pOVERLAP // ptr to OVERLAP structure
@@ -1125,7 +1112,7 @@ namespace System.Threading
         }
 
         [CLSCompliant(false)]
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable            
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod            
         public static RegisteredWaitHandle RegisterWaitForSingleObject(  // throws RegisterWaitException
              WaitHandle             waitObject,
              WaitOrTimerCallback    callBack,
@@ -1139,7 +1126,7 @@ namespace System.Threading
         }
 
         [CLSCompliant(false)]
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static RegisteredWaitHandle UnsafeRegisterWaitForSingleObject(  // throws RegisterWaitException
              WaitHandle             waitObject,
              WaitOrTimerCallback    callBack,
@@ -1167,7 +1154,7 @@ namespace System.Threading
 
             if (callBack != null)
             {
-                _ThreadPoolWaitOrTimerCallback callBackHelper = new _ThreadPoolWaitOrTimerCallback(callBack, state, compressStack, ref stackMark);
+                _ThreadPoolWaitOrTimerCallback callBackHelper = new _ThreadPoolWaitOrTimerCallback(callBack, state, compressStack);
                 state = (Object)callBackHelper;
                 // call SetWaitObject before native call so that waitObject won't be closed before threadpoolmgr registration
                 // this could occur if callback were to fire before SetWaitObject does its addref
@@ -1189,7 +1176,7 @@ namespace System.Threading
         }
 
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static RegisteredWaitHandle RegisterWaitForSingleObject(  // throws RegisterWaitException
              WaitHandle             waitObject,
              WaitOrTimerCallback    callBack,
@@ -1205,7 +1192,7 @@ namespace System.Threading
             return RegisterWaitForSingleObject(waitObject,callBack,state,(UInt32)millisecondsTimeOutInterval,executeOnlyOnce,ref stackMark,true);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable            
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod            
         public static RegisteredWaitHandle UnsafeRegisterWaitForSingleObject(  // throws RegisterWaitException
              WaitHandle             waitObject,
              WaitOrTimerCallback    callBack,
@@ -1221,7 +1208,7 @@ namespace System.Threading
             return RegisterWaitForSingleObject(waitObject,callBack,state,(UInt32)millisecondsTimeOutInterval,executeOnlyOnce,ref stackMark,false);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static RegisteredWaitHandle RegisterWaitForSingleObject(  // throws RegisterWaitException
             WaitHandle          waitObject,
             WaitOrTimerCallback callBack,
@@ -1237,7 +1224,7 @@ namespace System.Threading
             return RegisterWaitForSingleObject(waitObject,callBack,state,(UInt32)millisecondsTimeOutInterval,executeOnlyOnce,ref stackMark,true);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static RegisteredWaitHandle UnsafeRegisterWaitForSingleObject(  // throws RegisterWaitException
             WaitHandle          waitObject,
             WaitOrTimerCallback callBack,
@@ -1253,7 +1240,7 @@ namespace System.Threading
             return RegisterWaitForSingleObject(waitObject,callBack,state,(UInt32)millisecondsTimeOutInterval,executeOnlyOnce,ref stackMark,false);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static RegisteredWaitHandle RegisterWaitForSingleObject(
                           WaitHandle            waitObject,
                           WaitOrTimerCallback   callBack,
@@ -1271,7 +1258,7 @@ namespace System.Threading
             return RegisterWaitForSingleObject(waitObject,callBack,state,(UInt32)tm,executeOnlyOnce,ref stackMark,true);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static RegisteredWaitHandle UnsafeRegisterWaitForSingleObject(
                           WaitHandle            waitObject,
                           WaitOrTimerCallback   callBack,
@@ -1303,7 +1290,7 @@ namespace System.Threading
 
             ExecutionContext context = ExecutionContext.Capture();
 
-            IThreadPoolWorkItem tpcallBack = context == ExecutionContext.PreAllocatedDefault ?
+            IThreadPoolWorkItem tpcallBack = context == ExecutionContext.Default ?
                 new QueueUserWorkItemCallbackDefaultContext(callBack, state) :
                 (IThreadPoolWorkItem)new QueueUserWorkItemCallback(callBack, state, context);
 
@@ -1526,7 +1513,6 @@ namespace System.Threading
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         private static extern bool BindIOCompletionCallbackNative(IntPtr fileHandle);
     }
 }

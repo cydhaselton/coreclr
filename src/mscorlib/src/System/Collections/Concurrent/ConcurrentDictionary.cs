@@ -24,7 +24,6 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Security;
-using System.Security.Permissions;
 
 namespace System.Collections.Concurrent
 {
@@ -37,10 +36,9 @@ namespace System.Collections.Concurrent
     /// All public and protected members of <see cref="ConcurrentDictionary{TKey,TValue}"/> are thread-safe and may be used
     /// concurrently from multiple threads.
     /// </remarks>
-    [ComVisible(false)]
     [DebuggerTypeProxy(typeof(Mscorlib_DictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
-    public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
+    internal class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
     {
         /// <summary>
         /// Tables that hold the internal state of the ConcurrentDictionary
@@ -104,6 +102,10 @@ namespace System.Collections.Concurrent
         private static bool IsValueWriteAtomic()
         {
             Type valueType = typeof(TValue);
+            if (valueType.IsEnum)
+            {
+                valueType = Enum.GetUnderlyingType(valueType);
+            }
 
             //
             // Section 12.6.6 of ECMA CLI explains which types can be read and written atomically without

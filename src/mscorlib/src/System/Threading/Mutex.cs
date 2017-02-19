@@ -16,7 +16,6 @@ namespace System.Threading
     using System;
     using System.Threading;
     using System.Runtime.CompilerServices;
-    using System.Security.Permissions;
     using System.IO;
     using Microsoft.Win32;
     using Microsoft.Win32.SafeHandles;
@@ -27,7 +26,6 @@ namespace System.Threading
     using System.Diagnostics;
     using System.Diagnostics.Contracts;
 
-    [ComVisible(true)]
     public sealed class Mutex : WaitHandle
     {
         static bool dummyBool;
@@ -36,13 +34,11 @@ namespace System.Threading
         {
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public Mutex(bool initiallyOwned, String name, out bool createdNew)
             : this(initiallyOwned, name, out createdNew, (MutexSecurity)null)
         {
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         internal unsafe Mutex(bool initiallyOwned, String name, out bool createdNew, MutexSecurity mutexSecurity)
         {
             if (name == string.Empty)
@@ -62,7 +58,6 @@ namespace System.Threading
             CreateMutexWithGuaranteedCleanup(initiallyOwned, name, out createdNew, secAttrs);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         internal void CreateMutexWithGuaranteedCleanup(bool initiallyOwned, String name, out bool createdNew, Win32Native.SECURITY_ATTRIBUTES secAttrs)
         {
             RuntimeHelpers.CleanupCode cleanupCode = new RuntimeHelpers.CleanupCode(MutexCleanupCode);
@@ -85,7 +80,6 @@ namespace System.Threading
             Win32Native.SECURITY_ATTRIBUTES m_secAttrs;
             Mutex m_mutex;
 
-            [PrePrepareMethod]
             internal MutexTryCodeHelper(bool initiallyOwned,MutexCleanupInfo cleanupInfo, String name, Win32Native.SECURITY_ATTRIBUTES secAttrs, Mutex mutex)
             {
                 Debug.Assert(name == null || name.Length != 0);
@@ -97,7 +91,6 @@ namespace System.Threading
                 m_mutex = mutex;
             }
 
-            [PrePrepareMethod]
             internal void MutexTryCode(object userData)
             {  
                 SafeWaitHandle mutexHandle = null;
@@ -151,7 +144,6 @@ namespace System.Threading
             }
         }
 
-        [PrePrepareMethod]
         private void MutexCleanupCode(Object userData, bool exceptionThrown)
         {
             MutexCleanupInfo cleanupInfo = (MutexCleanupInfo) userData;
@@ -179,21 +171,17 @@ namespace System.Threading
             }
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public Mutex(bool initiallyOwned, String name) : this(initiallyOwned, name, out dummyBool) {
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public Mutex(bool initiallyOwned) : this(initiallyOwned, null, out dummyBool)
         {
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public Mutex() : this(false, null, out dummyBool)
         {
         }
         
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         private Mutex(SafeWaitHandle handle)
         {
             SetHandleInternal(handle);
@@ -292,7 +280,6 @@ namespace System.Threading
         // Note: To call ReleaseMutex, you must have an ACL granting you
         // MUTEX_MODIFY_STATE rights (0x0001).  The other interesting value
         // in a Mutex's ACL is MUTEX_ALL_ACCESS (0x1F0001).
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public void ReleaseMutex()
         {
             if (Win32Native.ReleaseMutex(safeWaitHandle))
@@ -304,7 +291,6 @@ namespace System.Threading
             }
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         static int CreateMutexHandle(bool initiallyOwned, String name, Win32Native.SECURITY_ATTRIBUTES securityAttribute, out SafeWaitHandle mutexHandle)
         {
             int errorCode;

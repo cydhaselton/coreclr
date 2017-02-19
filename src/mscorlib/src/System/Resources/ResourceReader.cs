@@ -21,7 +21,6 @@ namespace System.Resources {
     using System.Collections;
     using System.Collections.Generic;
     using System.Reflection;
-    using System.Security.Permissions;
     using System.Security;
     using System.Globalization;
     using System.Configuration.Assemblies;
@@ -68,7 +67,6 @@ namespace System.Resources {
     }
 
 
-    [System.Runtime.InteropServices.ComVisible(true)]
     public sealed class ResourceReader : IResourceReader
     {
         // A reasonable default buffer size for reading from files, especially
@@ -707,7 +705,7 @@ namespace System.Resources {
                     // For the case that we've memory mapped in the .resources
                     // file, just return a Stream pointing to that block of memory.
                     unsafe {
-                        return new UnmanagedMemoryStream(_ums.PositionPointer, len, len, FileAccess.Read, true);
+                        return new UnmanagedMemoryStream(_ums.PositionPointer, len, len, FileAccess.Read);
                     }
                 }
                 

@@ -18,11 +18,9 @@ namespace System {
     using System.Runtime.Serialization;
     using System.Runtime.CompilerServices;
     using System.Globalization;
-        using System.Security.Permissions;
     using System.Runtime.Versioning;
     using System.Diagnostics.Contracts;
     
-    [System.Runtime.InteropServices.ComVisible(true)]
     [Serializable]
     public class MissingMemberException : MemberAccessException, ISerializable {
         public MissingMemberException() 

@@ -38,7 +38,6 @@ namespace System.Reflection.Emit
     using System.Runtime.Serialization;
     using System.Runtime.Versioning;
     using System.Security;
-    using System.Security.Permissions;
     using System.Security.Policy;
     using System.Threading;
 
@@ -235,9 +234,6 @@ namespace System.Reflection.Emit
                                  AssemblyBuilderAccess access,
                                  String dir,
                                  Evidence evidence,
-                                 PermissionSet requiredPermissions,
-                                 PermissionSet optionalPermissions,
-                                 PermissionSet refusedPermissions,
                                  ref StackCrawlMark stackMark,
                                  IEnumerable<CustomAttributeBuilder> unsafeAssemblyAttributes,
                                  SecurityContextSource securityContextSource)
@@ -246,9 +242,6 @@ namespace System.Reflection.Emit
                 throw new ArgumentNullException(nameof(name));
 
             if (access != AssemblyBuilderAccess.Run
-#if FEATURE_REFLECTION_ONLY_LOAD
-                && access != AssemblyBuilderAccess.ReflectionOnly
-#endif // FEATURE_REFLECTION_ONLY_LOAD
                 && access != AssemblyBuilderAccess.RunAndCollect
                 )
             {
@@ -263,18 +256,6 @@ namespace System.Reflection.Emit
 
             // Clone the name in case the caller modifies it underneath us.
             name = (AssemblyName)name.Clone();
-
-            // If the caller is trusted they can supply identity
-            // evidence for the new assembly. Otherwise we copy the
-            // current grant and deny sets from the caller's assembly,
-            // inject them into the new assembly and mark policy as
-            // resolved. If/when the assembly is persisted and
-            // reloaded, the normal rules for gathering evidence will
-            // be used.
-            if (evidence != null)
-#pragma warning disable 618
-                new SecurityPermission(SecurityPermissionFlag.ControlEvidence).Demand();
-#pragma warning restore 618
 
             // Scan the assembly level attributes for any attributes which modify how we create the
             // assembly. Currently, we look for any attribute which modifies the security transparency
@@ -310,9 +291,6 @@ namespace System.Reflection.Emit
                                                                                         name,
                                                                                         evidence,
                                                                                         ref stackMark,
-                                                                                        requiredPermissions,
-                                                                                        optionalPermissions,
-                                                                                        refusedPermissions,
                                                                                         securityRulesBlob,
                                                                                         aptcaBlob,
                                                                                         access,
@@ -323,10 +301,6 @@ namespace System.Reflection.Emit
                                                      name.Name,
                                                      access,
                                                      dir);
-            m_assemblyData.AddPermissionRequests(requiredPermissions,
-                                                 optionalPermissions,
-                                                 refusedPermissions);
-
 #if FEATURE_APPX
             if (AppDomain.ProfileAPICheck)
             {
@@ -374,7 +348,7 @@ namespace System.Reflection.Emit
         * to have a strong name and a hash will be computed when the assembly
         * is saved.
         **********************************************/
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static AssemblyBuilder DefineDynamicAssembly(
             AssemblyName name,
             AssemblyBuilderAccess access)
@@ -383,10 +357,10 @@ namespace System.Reflection.Emit
 
             StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
             return InternalDefineDynamicAssembly(name, access, null,
-                                                 null, null, null, null, ref stackMark, null, SecurityContextSource.CurrentAssembly);
+                                                 null, ref stackMark, null, SecurityContextSource.CurrentAssembly);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static AssemblyBuilder DefineDynamicAssembly(
             AssemblyName name,
             AssemblyBuilderAccess access,
@@ -397,7 +371,7 @@ namespace System.Reflection.Emit
             StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
             return InternalDefineDynamicAssembly(name,
                                                  access,
-                                                 null, null, null, null, null,
+                                                 null, null,
                                                  ref stackMark,
                                                  assemblyAttributes, SecurityContextSource.CurrentAssembly);
         }
@@ -408,9 +382,6 @@ namespace System.Reflection.Emit
                                                               AssemblyName name,
                                                               Evidence identity,
                                                               ref StackCrawlMark stackMark,
-                                                              PermissionSet requiredPermissions,
-                                                              PermissionSet optionalPermissions,
-                                                              PermissionSet refusedPermissions,
                                                               byte[] securityRulesBlob,
                                                               byte[] aptcaBlob,
                                                               AssemblyBuilderAccess access,
@@ -424,9 +395,6 @@ namespace System.Reflection.Emit
             AssemblyBuilderAccess access,
             String dir,
             Evidence evidence,
-            PermissionSet requiredPermissions,
-            PermissionSet optionalPermissions,
-            PermissionSet refusedPermissions,
             ref StackCrawlMark stackMark,
             IEnumerable<CustomAttributeBuilder> unsafeAssemblyAttributes,
             SecurityContextSource securityContextSource)
@@ -439,9 +407,6 @@ namespace System.Reflection.Emit
                                            access,
                                            dir,
                                            evidence,
-                                           requiredPermissions,
-                                           optionalPermissions,
-                                           refusedPermissions,
                                            ref stackMark,
                                            unsafeAssemblyAttributes,
                                            securityContextSource);
@@ -457,7 +422,7 @@ namespace System.Reflection.Emit
         * a transient module.
         * 
         **********************************************/
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public ModuleBuilder DefineDynamicModule(
             String      name)
         {
@@ -467,7 +432,7 @@ namespace System.Reflection.Emit
             return DefineDynamicModuleInternal(name, false, ref stackMark);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public ModuleBuilder DefineDynamicModule(
             String      name,
             bool        emitSymbolInfo)         // specify if emit symbol info or not
@@ -522,12 +487,6 @@ namespace System.Reflection.Emit
             if (emitSymbolInfo)
             {
                 writer = SymWrapperCore.SymWriter.CreateSymWriter();
-                // Set the underlying writer for the managed writer
-                // that we're using.  Note that this function requires
-                // unmanaged code access.
-#pragma warning disable 618
-                new SecurityPermission(SecurityPermissionFlag.UnmanagedCode).Assert();
-#pragma warning restore 618
 
                 String fileName = "Unused"; // this symfile is never written to disk so filename does not matter.
                 
@@ -759,7 +718,7 @@ namespace System.Reflection.Emit
             return InternalAssembly.GetLoadedModules(getResourceModules);
         }
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public override Assembly GetSatelliteAssembly(CultureInfo culture)
         {
             StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
@@ -767,7 +726,7 @@ namespace System.Reflection.Emit
         }
 
         // Useful for binding to a very specific version of a satellite assembly
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public override Assembly GetSatelliteAssembly(CultureInfo culture, Version version)
         {
             StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
@@ -823,7 +782,6 @@ namespace System.Reflection.Emit
         /**********************************************
         * Use this function if client decides to form the custom attribute blob themselves
         **********************************************/
-        [System.Runtime.InteropServices.ComVisible(true)]
         public void SetCustomAttribute(ConstructorInfo con, byte[] binaryAttribute)
         {
             if (con == null)

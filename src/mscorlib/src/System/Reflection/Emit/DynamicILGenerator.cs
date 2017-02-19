@@ -14,7 +14,6 @@ namespace System.Reflection.Emit
     using System.Reflection;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Security.Permissions;
     using System.Threading;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
@@ -142,7 +141,6 @@ namespace System.Reflection.Emit
             PutInteger4(token);
         }
 
-        [System.Runtime.InteropServices.ComVisible(true)]
         public override void Emit(OpCode opcode, ConstructorInfo con)
         {
             if (con == null)
@@ -926,7 +924,6 @@ namespace System.Reflection.Emit
     }
 
 
-    [System.Runtime.InteropServices.ComVisible(true)]
     internal class DynamicILInfo
     {
         #region Private Data Members

@@ -52,6 +52,7 @@ Assembly* CrawlFrame::GetAssembly()
     return pAssembly;
 }
 
+#ifndef DACCESS_COMPILE
 OBJECTREF* CrawlFrame::GetAddrOfSecurityObject()
 {
     CONTRACTL {
@@ -98,6 +99,7 @@ OBJECTREF* CrawlFrame::GetAddrOfSecurityObject()
     }
     return NULL;
 }
+#endif
 
 BOOL CrawlFrame::IsInCalleesFrames(LPVOID stackPointer)
 {
@@ -656,20 +658,7 @@ PCODE Thread::VirtualUnwindCallFrame(T_CONTEXT* pContext,
     return uControlPc;
 }
 
-#ifdef DACCESS_COMPILE
-
-PCODE Thread::VirtualUnwindLeafCallFrame(T_CONTEXT* pContext)
-{
-    DacNotImpl();
-    return 0;
-}
-UINT_PTR Thread::VirtualUnwindToFirstManagedCallFrame(T_CONTEXT* pContext)
-{
-    DacNotImpl();
-    return 0;
-}
-
-#else  // !DACCESS_COMPILE
+#ifndef DACCESS_COMPILE
 
 // static
 PCODE Thread::VirtualUnwindLeafCallFrame(T_CONTEXT* pContext)
@@ -794,7 +783,7 @@ UINT_PTR Thread::VirtualUnwindToFirstManagedCallFrame(T_CONTEXT* pContext)
     return uControlPc;
 }
 
-#endif // DACCESS_COMPILE
+#endif // !DACCESS_COMPILE
 #endif // WIN64EXCEPTIONS
 
 #ifdef _DEBUG

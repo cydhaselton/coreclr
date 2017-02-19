@@ -20,13 +20,11 @@ namespace System {
     using System.Runtime.Versioning;
     using System.Security;
     using System.Diagnostics;
-    using System.Security.Permissions;
     using System.Diagnostics.Contracts;
 
     // Note that we make a T[] (single-dimensional w/ zero as the lower bound) implement both 
     // IList<U> and IReadOnlyList<U>, where T : U dynamically.  See the SZArrayHelper class for details.
     [Serializable]
-    [ComVisible(true)]
     public abstract class Array : ICloneable, IList, IStructuralComparable, IStructuralEquatable 
     {
         // This ctor exists solely to prevent C# from generating a protected .ctor that violates the surface area. I really want this to be a
@@ -43,7 +41,6 @@ namespace System {
             return new ReadOnlyCollection<T>(array);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static void Resize<T>(ref T[] array, int newSize) {
             if (newSize < 0)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.newSize, ExceptionResource.ArgumentOutOfRange_NeedNonNegNum);
@@ -227,7 +224,6 @@ namespace System {
         // Copies length elements from sourceArray, starting at index 0, to
         // destinationArray, starting at index 0.
         //
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Copy(Array sourceArray, Array destinationArray, int length)
         {
             if (sourceArray == null)
@@ -248,7 +244,6 @@ namespace System {
         // Copies length elements from sourceArray, starting at sourceIndex, to
         // destinationArray, starting at destinationIndex.
         //
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Copy(Array sourceArray, int sourceIndex, Array destinationArray, int destinationIndex, int length) 
         {
             Copy(sourceArray, sourceIndex, destinationArray, destinationIndex, length, false);
@@ -258,7 +253,6 @@ namespace System {
         // instance & might fail when called from within a CER, or if the
         // reliable flag is true, it will either always succeed or always
         // throw an exception with no side effects.
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal static extern void Copy(Array sourceArray, int sourceIndex, Array destinationArray, int destinationIndex, int length, bool reliable);
 
@@ -267,13 +261,11 @@ namespace System {
         // compatible array types based on the array element type - this 
         // method does not support casting, boxing, or primitive widening.
         // It will up-cast, assuming the array types are correct.
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public static void ConstrainedCopy(Array sourceArray, int sourceIndex, Array destinationArray, int destinationIndex, int length)
         {
             Copy(sourceArray, sourceIndex, destinationArray, destinationIndex, length, true);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Copy(Array sourceArray, Array destinationArray, long length)
         {
             if (length > Int32.MaxValue || length < Int32.MinValue)
@@ -282,7 +274,6 @@ namespace System {
             Array.Copy(sourceArray, destinationArray, (int) length);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Copy(Array sourceArray, long sourceIndex, Array destinationArray, long destinationIndex, long length)
         {
             if (sourceIndex > Int32.MaxValue || sourceIndex < Int32.MinValue)
@@ -300,7 +291,6 @@ namespace System {
         // at index.
         //
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public static extern void Clear(Array array, int index, int length);
         
         // The various Get values...
@@ -360,7 +350,6 @@ namespace System {
             return TypedReference.InternalToObject(&elemref);
         }
 
-        [ComVisible(false)]       
         public Object GetValue(long index)
         {
             if (index > Int32.MaxValue || index < Int32.MinValue)
@@ -370,7 +359,6 @@ namespace System {
             return this.GetValue((int) index);
         }
 
-        [ComVisible(false)]
         public Object GetValue(long index1, long index2)
         {
             if (index1 > Int32.MaxValue || index1 < Int32.MinValue)
@@ -382,7 +370,6 @@ namespace System {
             return this.GetValue((int) index1, (int) index2);
         }
 
-        [ComVisible(false)]
         public Object GetValue(long index1, long index2, long index3)
         {
             if (index1 > Int32.MaxValue || index1 < Int32.MinValue)
@@ -396,7 +383,6 @@ namespace System {
             return this.GetValue((int) index1, (int) index2, (int) index3);
         }
 
-        [ComVisible(false)]
         public Object GetValue(params long[] indices)
         {
             if (indices == null)
@@ -475,7 +461,6 @@ namespace System {
             InternalSetValue(&elemref,value);
         }
 
-        [ComVisible(false)]
         public void SetValue(Object value, long index)
         {
             if (index > Int32.MaxValue || index < Int32.MinValue)
@@ -485,7 +470,6 @@ namespace System {
             this.SetValue(value, (int) index);
         }
 
-        [ComVisible(false)]
         public void SetValue(Object value, long index1, long index2)
         {
             if (index1 > Int32.MaxValue || index1 < Int32.MinValue)
@@ -497,7 +481,6 @@ namespace System {
             this.SetValue(value, (int) index1, (int) index2);
         }
 
-        [ComVisible(false)]
         public void SetValue(Object value, long index1, long index2, long index3)
         {
             if (index1 > Int32.MaxValue || index1 < Int32.MinValue)
@@ -511,7 +494,6 @@ namespace System {
             this.SetValue(value, (int) index1, (int) index2, (int) index3);
         }
 
-        [ComVisible(false)]
         public void SetValue(Object value, params long[] indices)
         {
             if (indices == null)
@@ -544,12 +526,10 @@ namespace System {
 
         public extern int Length {
             [Pure]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
             [MethodImpl(MethodImplOptions.InternalCall)]
             get;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         private static int GetMedian(int low, int hi) {
             // Note both may be negative, if we are dealing with arrays w/ negative lower bounds.
             Contract.Requires(low <= hi);
@@ -565,10 +545,8 @@ namespace System {
         internal const int MaxArrayLength = 0X7FEFFFFF;
         internal const int MaxByteArrayLength = 0x7FFFFFC7;
 
-        [ComVisible(false)]
         public extern long LongLength {
             [Pure]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
             [MethodImpl(MethodImplOptions.InternalCall)]
             get;
         }
@@ -578,7 +556,6 @@ namespace System {
         public extern int GetLength(int dimension);
 
         [Pure]
-        [ComVisible(false)]
         public long GetLongLength(int dimension) {
             //This method should throw an IndexOufOfRangeException for compat if dimension < 0 or >= Rank
             return GetLength(dimension);
@@ -586,22 +563,18 @@ namespace System {
 
         public extern int Rank {
             [Pure]
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
             [MethodImplAttribute(MethodImplOptions.InternalCall)]
             get;
         }
 
         [Pure]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public extern int GetUpperBound(int dimension);
 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern int GetLowerBound(int dimension);
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         internal extern int GetDataPtrOffsetInternal();
 
@@ -768,7 +741,6 @@ namespace System {
         // is larger than the given search value.
         // 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch(Array array, Object value) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -792,7 +764,6 @@ namespace System {
         // is larger than the given search value.
         // 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch(Array array, int index, int length, Object value) {
             return BinarySearch(array, index, length, value, null);
         }
@@ -812,7 +783,6 @@ namespace System {
         // is larger than the given search value.
         // 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch(Array array, Object value, IComparer comparer) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -837,7 +807,6 @@ namespace System {
         // is larger than the given search value.
         // 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch(Array array, int index, int length, Object value, IComparer comparer) {
             if (array==null) 
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -908,11 +877,9 @@ namespace System {
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         private static extern bool TrySZBinarySearch(Array sourceArray, int sourceIndex, int count, Object value, out int retVal);
         
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch<T>(T[] array, T value) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -921,7 +888,6 @@ namespace System {
         }
 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch<T>(T[] array, T value, System.Collections.Generic.IComparer<T> comparer) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -930,13 +896,11 @@ namespace System {
         }
 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch<T>(T[] array, int index, int length, T value) {
             return BinarySearch<T>(array, index, length, value, null);
         }
 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int BinarySearch<T>(T[] array, int index, int length, T value, System.Collections.Generic.IComparer<T> comparer) {
             if (array==null) 
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -989,7 +953,6 @@ namespace System {
         }
 
         [Pure]
-        [ComVisible(false)]
         public void CopyTo(Array array, long index)
         {
             if (index > Int32.MaxValue || index < Int32.MinValue)
@@ -1000,7 +963,6 @@ namespace System {
         }
 
         [Pure]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static T[] Empty<T>()
         {
             Contract.Ensures(Contract.Result<T[]>() != null);
@@ -1238,7 +1200,6 @@ namespace System {
         // The array is searched forwards, and the elements of the array are
         // compared to the given value using the Object.Equals method.
         // 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int IndexOf(Array array, Object value) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1254,7 +1215,6 @@ namespace System {
         // elements of the array are compared to the given value using the
         // Object.Equals method.
         // 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int IndexOf(Array array, Object value, int startIndex) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1270,7 +1230,6 @@ namespace System {
         // elements of the array are compared to the given value using the
         // Object.Equals method.
         // 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int IndexOf(Array array, Object value, int startIndex, int count) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1365,7 +1324,6 @@ namespace System {
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         private static extern bool TrySZIndexOf(Array sourceArray, int sourceIndex, int count, Object value, out int retVal);
         
 
@@ -1373,7 +1331,6 @@ namespace System {
         // The array is searched backwards, and the elements of the array are
         // compared to the given value using the Object.Equals method.
         // 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int LastIndexOf(Array array, Object value) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1388,7 +1345,6 @@ namespace System {
         // startIndex and ending at index 0. The elements of the array are
         // compared to the given value using the Object.Equals method.
         // 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int LastIndexOf(Array array, Object value, int startIndex) {
             if (array == null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1404,7 +1360,6 @@ namespace System {
         // the array are compared to the given value using the Object.Equals
         // method.
         // 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static int LastIndexOf(Array array, Object value, int startIndex, int count) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1516,7 +1471,6 @@ namespace System {
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         private static extern bool TrySZLastIndexOf(Array sourceArray, int sourceIndex, int count, Object value, out int retVal);
 
 
@@ -1525,7 +1479,6 @@ namespace System {
         // located at index length - i - 1, where length is the
         // length of the array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Reverse(Array array) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1539,7 +1492,6 @@ namespace System {
         // index index + (index + count - i - 1).
         // Reliability note: This may fail because it may have to box objects.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Reverse(Array array, int index, int length) {
             if (array==null) 
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1583,10 +1535,8 @@ namespace System {
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         private static extern bool TrySZReverse(Array array, int index, int count);
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Reverse<T>(T[] array)
         {
             if (array == null)
@@ -1595,7 +1545,6 @@ namespace System {
             Reverse(array, 0, array.Length);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Reverse<T>(T[] array, int index, int length)
         {
             if (array == null)
@@ -1624,7 +1573,6 @@ namespace System {
         // other using the IComparable interface, which must be implemented
         // by all elements of the array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array array) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1638,7 +1586,6 @@ namespace System {
         // keys to each other using the IComparable interface, which must be
         // implemented by all elements of the keys array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array keys, Array items) {
             if (keys==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.keys);
@@ -1650,7 +1597,6 @@ namespace System {
         // elements to each other using the IComparable interface, which
         // must be implemented by all elements in the given section of the array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array array, int index, int length) {
             Sort(array, null, index, length, null);
         }
@@ -1661,7 +1607,6 @@ namespace System {
         // keys to each other using the IComparable interface, which must be
         // implemented by all elements of the keys array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array keys, Array items, int index, int length) {
             Sort(keys, items, index, length, null);
         }
@@ -1672,7 +1617,6 @@ namespace System {
         // IComparable interface, which in that case must be implemented by
         // all elements of the array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array array, IComparer comparer) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1688,7 +1632,6 @@ namespace System {
         // the IComparable interface, which in that case must be implemented
         // by all elements of the keys array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array keys, Array items, IComparer comparer) {
             if (keys==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.keys);
@@ -1702,7 +1645,6 @@ namespace System {
         // the IComparable interface, which in that case must be implemented
         // by all elements in the given section of the array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array array, int index, int length, IComparer comparer) {
             Sort(array, null, index, length, comparer);
         }
@@ -1715,7 +1657,6 @@ namespace System {
         // the IComparable interface, which in that case must be implemented
         // by all elements of the given section of the keys array.
         // 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort(Array keys, Array items, int index, int length, IComparer comparer) {
             if (keys==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.keys);
@@ -1757,10 +1698,8 @@ namespace System {
         }
         
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         private static extern bool TrySZSort(Array keys, Array items, int left, int right);
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<T>(T[] array) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1768,7 +1707,6 @@ namespace System {
             Sort<T>(array, 0, array.Length, null);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items) {
             if (keys==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.keys);
@@ -1776,17 +1714,14 @@ namespace System {
             Sort<TKey, TValue>(keys, items, 0, keys.Length, null);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<T>(T[] array, int index, int length) {
             Sort<T>(array, index, length, null);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items, int index, int length) {
             Sort<TKey, TValue>(keys, items, index, length, null);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<T>(T[] array, System.Collections.Generic.IComparer<T> comparer) {
             if (array == null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1794,7 +1729,6 @@ namespace System {
             Sort<T>(array, 0, array.Length, comparer);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items, System.Collections.Generic.IComparer<TKey> comparer) {
             if (keys==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.keys);
@@ -1802,7 +1736,6 @@ namespace System {
             Sort<TKey, TValue>(keys, items, 0, keys.Length, comparer);
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<T>(T[] array, int index, int length, System.Collections.Generic.IComparer<T> comparer) {
             if (array==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
@@ -1825,7 +1758,6 @@ namespace System {
             }
         }
 
-        [ReliabilityContract(Consistency.MayCorruptInstance, Cer.MayFail)]
         public static void Sort<TKey, TValue>(TKey[] keys, TValue[] items, int index, int length, System.Collections.Generic.IComparer<TKey> comparer) {
             if (keys==null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.keys);

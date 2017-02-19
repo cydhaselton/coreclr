@@ -13,12 +13,10 @@
 namespace System {
     using System.Runtime.Serialization;
     using System.Globalization;
-    using System.Security.Permissions;
     using System.Runtime.InteropServices;
     using System.Diagnostics.Contracts;
 
 
-    [ComVisible(true)]
     [Serializable]
     internal sealed class OperatingSystem : ICloneable , ISerializable
     {

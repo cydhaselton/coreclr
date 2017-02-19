@@ -13,7 +13,6 @@ namespace System {
     using System.Runtime.Serialization;
     using System.Runtime.Versioning;
     using System.Security;
-    using System.Security.Permissions;
     using System.Diagnostics.Contracts;
     using CultureInfo = System.Globalization.CultureInfo;
     using Calendar = System.Globalization.Calendar;
@@ -663,7 +662,6 @@ namespace System {
             return new DateTime(DoubleDateToTicks(d), DateTimeKind.Unspecified);
         }        
 
-        [System.Security.SecurityCritical /*auto-generated_required*/]
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
             if (info==null) {
                 throw new ArgumentNullException(nameof(info));

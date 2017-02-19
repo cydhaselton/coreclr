@@ -19,13 +19,11 @@ namespace System
     using System.Text;
     using System.Globalization;
     using System.Security;
-    using System.Security.Permissions;
     using Microsoft.Win32.SafeHandles;
     using System.Diagnostics.Contracts;
     using StackCrawlMark = System.Threading.StackCrawlMark;
 
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     public unsafe struct RuntimeTypeHandle : ISerializable
     {
         // Returns handle for interop with EE. The handle is guaranteed to be non-null.
@@ -99,7 +97,6 @@ namespace System
             return m_type != null ? m_type.GetHashCode() : 0;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public override bool Equals(object obj)
         {
             if(!(obj is RuntimeTypeHandle))
@@ -109,7 +106,6 @@ namespace System
             return handle.m_type == m_type;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public bool Equals(RuntimeTypeHandle handle)
         {
             return handle.m_type == m_type;
@@ -230,11 +226,9 @@ namespace System
         internal extern static RuntimeAssembly GetAssembly(RuntimeType type);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal extern static RuntimeModule GetModule(RuntimeType type);
 
         [CLSCompliant(false)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public ModuleHandle GetModuleHandle()
         {
             return new ModuleHandle(RuntimeTypeHandle.GetModule(m_type));
@@ -772,7 +766,6 @@ namespace System
     }
 
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     public unsafe struct RuntimeMethodHandle : ISerializable
     {
         // Returns handle for interop with EE. The handle is guaranteed to be non-null.
@@ -844,7 +837,6 @@ namespace System
             return ValueType.GetHashCodeOfPtr(Value);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public override bool Equals(object obj)
         {
             if (!(obj is RuntimeMethodHandle))
@@ -865,7 +857,6 @@ namespace System
             return !left.Equals(right);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public bool Equals(RuntimeMethodHandle handle)
         {
             return handle.Value == Value;
@@ -992,11 +983,6 @@ namespace System
         static extern internal uint GetSpecialSecurityFlags(IRuntimeMethodInfo method);
 
 #endregion
-        [DebuggerStepThroughAttribute]
-        [Diagnostics.DebuggerHidden]
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]        
-        internal extern static void SerializationInvoke(IRuntimeMethodInfo method,
-            Object target, SerializationInfo info, ref StreamingContext context);
 
         [DllImport(JitHelpers.QCall, CharSet = CharSet.Unicode)]
 		[SuppressUnmanagedCodeSecurity]
@@ -1165,7 +1151,6 @@ namespace System
     }
 
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     public unsafe struct RuntimeFieldHandle : ISerializable
     {
         // Returns handle for interop with EE. The handle is guaranteed to be non-null.
@@ -1208,7 +1193,6 @@ namespace System
             return ValueType.GetHashCodeOfPtr(Value);
         }
         
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public override bool Equals(object obj)
         {
             if (!(obj is RuntimeFieldHandle))
@@ -1219,7 +1203,6 @@ namespace System
             return handle.Value == Value;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public unsafe bool Equals(RuntimeFieldHandle handle)
         {
             return handle.Value == Value;
@@ -1347,7 +1330,6 @@ namespace System
         }
     }
 
-[System.Runtime.InteropServices.ComVisible(true)]
     public unsafe struct ModuleHandle
     {
         // Returns handle for interop with EE. The handle is guaranteed to be non-null.
@@ -1383,7 +1365,6 @@ namespace System
             return m_ptr != null ? m_ptr.GetHashCode() : 0;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public override bool Equals(object obj)
         {
             if (!(obj is ModuleHandle))
@@ -1394,7 +1375,6 @@ namespace System
             return handle.m_ptr == m_ptr;
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public unsafe bool Equals(ModuleHandle handle)
         {
             return handle.m_ptr == m_ptr;

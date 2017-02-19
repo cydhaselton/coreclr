@@ -18,7 +18,6 @@ namespace System.Runtime.Serialization {
     using System.Collections;
     using System.Collections.Generic;
     using System.Security;    
-    using System.Security.Permissions;
     using System.Runtime.Remoting;
     using System.Runtime.CompilerServices;
     using System.Runtime.Versioning;
@@ -29,7 +28,6 @@ namespace System.Runtime.Serialization {
     using System.Diagnostics;
     using System.Diagnostics.Contracts;
 
-    [System.Runtime.InteropServices.ComVisible(true)]
     public static class FormatterServices {
     
         // Gets a new instance of the object.  The entire object is initalized to 0 and no 

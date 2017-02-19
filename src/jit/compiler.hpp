@@ -4450,7 +4450,7 @@ inline void Compiler::EndPhase(Phases phase)
 #if defined(FEATURE_JIT_METHOD_PERF)
     if (pCompJitTimer != nullptr)
     {
-        pCompJitTimer->EndPhase(phase);
+        pCompJitTimer->EndPhase(this, phase);
     }
 #endif
 #if DUMP_FLOWGRAPHS
@@ -4687,10 +4687,10 @@ inline void BasicBlock::InitVarSets(Compiler* comp)
     VarSetOps::AssignNoCopy(comp, bbLiveOut, VarSetOps::MakeEmpty(comp));
     VarSetOps::AssignNoCopy(comp, bbScope, VarSetOps::MakeEmpty(comp));
 
-    bbHeapUse     = false;
-    bbHeapDef     = false;
-    bbHeapLiveIn  = false;
-    bbHeapLiveOut = false;
+    bbMemoryUse     = emptyMemoryKindSet;
+    bbMemoryDef     = emptyMemoryKindSet;
+    bbMemoryLiveIn  = emptyMemoryKindSet;
+    bbMemoryLiveOut = emptyMemoryKindSet;
 }
 
 // Returns true if the basic block ends with GT_JMP

@@ -13,7 +13,6 @@ namespace System.Reflection
     using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
     using System.Runtime.ConstrainedExecution;
-    using System.Security.Permissions;
     using RuntimeTypeCache = System.RuntimeType.RuntimeTypeCache;
 
     [Serializable]
@@ -233,7 +232,6 @@ namespace System.Reflection
         #endregion
 
         #region Internal Members
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal override bool CacheEquals(object o)
         {
             RuntimeEventInfo m = o as RuntimeEventInfo;

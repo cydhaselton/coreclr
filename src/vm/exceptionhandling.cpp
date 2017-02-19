@@ -966,7 +966,6 @@ ProcessCLRException(IN     PEXCEPTION_RECORD   pExceptionRecord
         }
 #endif // FEATURE_CORRUPTING_EXCEPTIONS
 
-#ifdef FEATURE_CORECLR
         {
             // Switch to COOP mode since we are going to work
             // with throwable
@@ -1009,7 +1008,6 @@ ProcessCLRException(IN     PEXCEPTION_RECORD   pExceptionRecord
                 }
             }
         }
-#endif // FEATURE_CORECLR
 
 #ifndef FEATURE_PAL // Watson is on Windows only
         // Setup bucketing details for nested exceptions (rethrow and non-rethrow) only if we are in the first pass
@@ -2213,13 +2211,11 @@ CLRUnwindStatus ExceptionTracker::ProcessExplicitFrame(
 #if defined(DEBUGGING_SUPPORTED)
                 if (ExceptionTracker::NotifyDebuggerOfStub(pThread, sf, pFrame))
                 {
-#ifdef FEATURE_EXCEPTION_NOTIFICATIONS
                     // Deliver the FirstChanceNotification after the debugger, if not already delivered.
                     if (!this->DeliveredFirstChanceNotification())
                     {
                         ExceptionNotifications::DeliverFirstChanceNotification();
                     }
-#endif // FEATURE_EXCEPTION_NOTIFICATIONS
                 }
 #endif // DEBUGGING_SUPPORTED
 
@@ -2243,7 +2239,6 @@ CLRUnwindStatus ExceptionTracker::HandleFunclets(bool* pfProcessThisFrame, bool 
     }
     CONTRACTL_END;
 
-#ifdef WIN64EXCEPTIONS // funclets
     BOOL fUnwindingToFindResumeFrame = m_ExceptionFlags.UnwindingToFindResumeFrame();
 
     //
@@ -2316,7 +2311,6 @@ CLRUnwindStatus ExceptionTracker::HandleFunclets(bool* pfProcessThisFrame, bool 
             }
         }
     }
-#endif // WIN64EXCEPTIONS
 
     return UnwindPending;
 }
@@ -2356,14 +2350,9 @@ CLRUnwindStatus ExceptionTracker::ProcessManagedCallFrame(
 
     EH_LOG((LL_INFO100, "  [ ProcessManagedCallFrame this=%p, %s PASS ]\n", this, (fIsFirstPass ? "FIRST" : "SECOND")));
     
-#ifdef WIN64EXCEPTIONS // funclets
     EH_LOG((LL_INFO100, "  [ method: %s%s, %s ]\n",
         (fIsFunclet ? "FUNCLET of " : ""),
         pMD->m_pszDebugMethodName, pMD->m_pszDebugClassName));
-#else // !WIN64EXCEPTIONS
-    EH_LOG((LL_INFO100, "  [ method: %s, %s ]\n",
-        pMD->m_pszDebugMethodName, pMD->m_pszDebugClassName));
-#endif // WIN64EXCEPTIONS
 
     Thread *pThread = GetThread();
     _ASSERTE (pThread);
@@ -2553,14 +2542,12 @@ CLRUnwindStatus ExceptionTracker::ProcessManagedCallFrame(
                     }
 #endif // DEBUGGING_SUPPORTED
 
-#ifdef FEATURE_EXCEPTION_NOTIFICATIONS
                     // Attempt to deliver the first chance notification to the AD only *AFTER* the debugger
                     // has done that, provided we have not already delivered it.
                     if (!this->DeliveredFirstChanceNotification())
                     {
                         ExceptionNotifications::DeliverFirstChanceNotification();
                     }
-#endif // FEATURE_EXCEPTION_NOTIFICATIONS
                 }
                 else
                 {
@@ -2686,7 +2673,7 @@ CLRUnwindStatus ExceptionTracker::ProcessManagedCallFrame(
                 EE_ILEXCEPTION_CLAUSE EHClause;
                 PTR_EXCEPTION_CLAUSE_TOKEN pEHClauseToken = pJitMan->GetNextEHClause(&EnumState, &EHClause);
 
-                EH_LOG((LL_INFO100, "  considering %s clause [%x,%x], ControlPc is %s clause (offset %x)",
+                EH_LOG((LL_INFO100, "  considering %s clause [%x,%x), ControlPc is %s clause (offset %x)",
                         (IsFault(&EHClause)         ? "fault"   :
                         (IsFinally(&EHClause)       ? "finally" :
                         (IsFilterHandler(&EHClause) ? "filter"  :
@@ -4337,7 +4324,7 @@ VOID UnwindManagedExceptionPass2(PAL_SEHException& ex, CONTEXT* unwindStartConte
         dispatcherContext.FunctionEntry = codeInfo.GetFunctionEntry();
         dispatcherContext.ControlPc = controlPc;
         dispatcherContext.ImageBase = codeInfo.GetModuleBase();
-#if defined(_TARGET_ARM_) || defined(_TARGET_X86_)
+#if defined(_TARGET_ARM_) || defined(_TARGET_ARM64_) || defined(_TARGET_X86_)
         dispatcherContext.ControlPcIsUnwound = !!(currentFrameContext->ContextFlags & CONTEXT_UNWOUND_TO_CALL);
 #endif
         // Check whether we have a function table entry for the current controlPC.
@@ -4488,7 +4475,7 @@ VOID DECLSPEC_NORETURN UnwindManagedExceptionPass1(PAL_SEHException& ex, CONTEXT
         dispatcherContext.FunctionEntry = codeInfo.GetFunctionEntry();
         dispatcherContext.ControlPc = controlPc;
         dispatcherContext.ImageBase = codeInfo.GetModuleBase();
-#if defined(_TARGET_ARM_) || defined(_TARGET_X86_)
+#if defined(_TARGET_ARM_) || defined(_TARGET_ARM64_) || defined(_TARGET_X86_)
         dispatcherContext.ControlPcIsUnwound = !!(frameContext->ContextFlags & CONTEXT_UNWOUND_TO_CALL);
 #endif
 
@@ -4704,29 +4691,7 @@ Return value :
 --*/
 VOID* GetRegisterAddressByIndex(PCONTEXT pContext, UINT index)
 {
-#if defined(_TARGET_AMD64_)
-    _ASSERTE(index < 16);
-    return &((&pContext->Rax)[index]);
-#elif defined(_TARGET_X86_)
-    _ASSERTE(index < 8);
-
-    static const SIZE_T OFFSET_OF_REGISTERS[] =
-    {
-        offsetof(CONTEXT, Eax),
-        offsetof(CONTEXT, Ecx),
-        offsetof(CONTEXT, Edx),
-        offsetof(CONTEXT, Ebx),
-        offsetof(CONTEXT, Esp),
-        offsetof(CONTEXT, Ebp),
-        offsetof(CONTEXT, Esi),
-        offsetof(CONTEXT, Edi),
-    };
-
-    return (VOID*)(PBYTE(pContext) + OFFSET_OF_REGISTERS[index]);
-#else
-    PORTABILITY_ASSERT("GetRegisterAddressByIndex");
-    return NULL;
-#endif
+    return getRegAddr(index, pContext);
 }
 
 /*++
@@ -4858,10 +4823,15 @@ DWORD64 GetModRMOperandValue(BYTE rex, BYTE* ip, PCONTEXT pContext, bool is8Bit,
             // Get the value we need from the register.
             //
 
-            // Check for RIP-relative addressing mode.
+            // Check for RIP-relative addressing mode for AMD64
+            // Check for Displacement only addressing mode for x86
             if ((mod == 0) && (rm == 5))
             {
+#if defined(_TARGET_AMD64_)
                 result = (DWORD64)ip + sizeof(INT32) + *(INT32*)ip;
+#else
+                result = (DWORD64)(*(DWORD*)ip);
+#endif // _TARGET_AMD64_
             }
             else
             {
@@ -5094,9 +5064,7 @@ BOOL HandleHardwareException(PAL_SEHException* ex)
 
         // Create frame necessary for the exception handling
         FrameWithCookie<FaultingExceptionFrame> fef;
-#if defined(WIN64EXCEPTIONS)
         *((&fef)->GetGSCookiePtr()) = GetProcessGSCookie();
-#endif // WIN64EXCEPTIONS
         {
             GCX_COOP();     // Must be cooperative to modify frame chain.
             if (IsIPInMarkedJitHelper(controlPc))
@@ -7049,10 +7017,8 @@ void ExceptionTracker::ResetThreadAbortStatus(PTR_Thread pThread, CrawlFrame *pC
         GC_NOTRIGGER;
         MODE_ANY;
         PRECONDITION(pThread != NULL);
-#ifdef WIN64EXCEPTIONS
         PRECONDITION(pCf != NULL);
         PRECONDITION(!sfCurrentStackFrame.IsNull());
-#endif // WIN64EXCEPTIONS
     }
     CONTRACTL_END;
 
@@ -7063,5 +7029,5 @@ void ExceptionTracker::ResetThreadAbortStatus(PTR_Thread pThread, CrawlFrame *pC
 }
 #endif //!DACCESS_COMPILE
 
-#endif // _WIN64
+#endif // WIN64EXCEPTIONS
 

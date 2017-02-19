@@ -16,7 +16,6 @@ namespace System.Reflection.Emit {
     
     using System;
     using System.Reflection;
-    using System.Security.Permissions;
     using System.Runtime.InteropServices;
     using System.Diagnostics.Contracts;
     
@@ -92,7 +91,6 @@ namespace System.Reflection.Emit {
     
         // Use this function if client decides to form the custom attribute blob themselves
 
-[System.Runtime.InteropServices.ComVisible(true)]
         public void SetCustomAttribute(ConstructorInfo con, byte[] binaryAttribute)
         {
             if (con == null)

@@ -17,11 +17,9 @@ namespace System.Collections {
     using System;
     using System.Globalization;
     using System.Runtime.Serialization;
-    using System.Security.Permissions;
     using System.Diagnostics.Contracts;
 
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     internal sealed class Comparer : IComparer , ISerializable
     {
         private CompareInfo m_compareInfo;   

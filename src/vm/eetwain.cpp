@@ -3099,7 +3099,8 @@ size_t EECodeManager::GetCallerSp( PREGDISPLAY  pRD )
     {
         EnsureCallerContextIsValid(pRD, NULL);
     }
-    return (size_t) (GetSP(pRD->pCallerContext));
+
+    return GetSP(pRD->pCallerContext);
 }
 
 #endif // WIN64EXCEPTIONS && !CROSSGEN_COMPILE
@@ -4119,7 +4120,8 @@ void promoteVarArgs(PTR_BYTE argsStart, PTR_VASigCookie varArgSig, GCCONTEXT* ct
 
 INDEBUG(void* forceStack1;)
 
-#if defined(_TARGET_X86_)
+#ifndef CROSSGEN_COMPILE
+#ifndef USE_GC_INFO_DECODER
 
 /*****************************************************************************
  *
@@ -4760,7 +4762,7 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pContext,
     return true;
 }
 
-#elif defined(USE_GC_INFO_DECODER) && !defined(CROSSGEN_COMPILE) // !defined(_TARGET_X86_)
+#else // !USE_GC_INFO_DECODER
 
 
 /*****************************************************************************
@@ -4800,7 +4802,6 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pRD,
     GCInfoToken gcInfoToken = pCodeInfo->GetGCInfoToken();
 
 #if defined(STRESS_HEAP) && defined(PARTIALLY_INTERRUPTIBLE_GC_SUPPORTED)
-#ifdef USE_GC_INFO_DECODER
     // When we simulate a hijack during gcstress
     //  we start with ActiveStackFrame and the offset
     //  after the call
@@ -4823,7 +4824,6 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pRD,
             flags &= ~((unsigned)ActiveStackFrame);
         }
     }
-#endif // USE_GC_INFO_DECODER
 #endif // STRESS_HEAP && PARTIALLY_INTERRUPTIBLE_GC_SUPPORTED
 
 #ifdef _DEBUG
@@ -4838,7 +4838,6 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pRD,
     }
 #endif
 
-#ifdef USE_GC_INFO_DECODER
     /* If we are not in the active method, we are currently pointing
          * to the return address; at the return address stack variables
          * can become dead if the call is the last instruction of a try block
@@ -4898,7 +4897,6 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pRD,
             methodName, curOffs));
     }
 
-#endif  // USE_GC_INFO_DECODER
 
 #if defined(WIN64EXCEPTIONS)   // funclets
     if (pCodeInfo->GetJitManager()->IsFilterFunclet(pCodeInfo))
@@ -4996,11 +4994,11 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pRD,
 
         _ASSERTE(prevSP + VASigCookieOffset >= dac_cast<PTR_BYTE>(GetSP(pRD->pCurrentContext)));        
 
-#if defined(_DEBUG) && !defined(DACCESS_COMPILE) && !defined(CROSSGEN_COMPILE)
+#if defined(_DEBUG) && !defined(DACCESS_COMPILE)
         // Note that I really want to say hCallBack is a GCCONTEXT, but this is pretty close
         extern void GcEnumObject(LPVOID pData, OBJECTREF *pObj, uint32_t flags);
         _ASSERTE((void*) GcEnumObject == pCallBack);
-#endif
+#endif // _DEBUG && !DACCESS_COMPILE
         GCCONTEXT   *pCtx = (GCCONTEXT *) hCallBack;
 
         // For varargs, look up the signature using the varArgSig token passed on the stack
@@ -5013,20 +5011,8 @@ bool EECodeManager::EnumGcRefs( PREGDISPLAY     pRD,
 
 }
 
-#else // !defined(_TARGET_X86_) && !(defined(USE_GC_INFO_DECODER) && !defined(CROSSGEN_COMPILE))
-
-bool EECodeManager::EnumGcRefs( PREGDISPLAY     pContext,
-                                EECodeInfo     *pCodeInfo,
-                                unsigned        flags,
-                                GCEnumCallback  pCallBack,
-                                LPVOID          hCallBack,
-                                DWORD           relOffsetOverride)
-{
-    PORTABILITY_ASSERT("EECodeManager::EnumGcRefs is not implemented on this platform.");
-    return false;
-}
-
-#endif // _TARGET_X86_
+#endif // USE_GC_INFO_DECODER
+#endif // !CROSSGEN_COMPILE
 
 #ifdef _TARGET_X86_
 /*****************************************************************************
@@ -5049,7 +5035,7 @@ OBJECTREF* EECodeManager::GetAddrOfSecurityObjectFromCachedInfo(PREGDISPLAY pRD,
 }
 #endif // _TARGET_X86_
 
-#ifndef DACCESS_COMPILE
+#if !defined(DACCESS_COMPILE) && !defined(CROSSGEN_COMPILE)
 OBJECTREF* EECodeManager::GetAddrOfSecurityObject(CrawlFrame *pCF)
 {
     CONTRACTL {
@@ -5067,7 +5053,7 @@ OBJECTREF* EECodeManager::GetAddrOfSecurityObject(CrawlFrame *pCF)
 
     _ASSERTE(sizeof(CodeManStateBuf) <= sizeof(pState->stateBuf));
 
-#if defined(_TARGET_X86_)
+#ifndef USE_GC_INFO_DECODER
     CodeManStateBuf * stateBuf = (CodeManStateBuf*)pState->stateBuf;
 
     /* Extract the necessary information from the info block header */
@@ -5085,7 +5071,7 @@ OBJECTREF* EECodeManager::GetAddrOfSecurityObject(CrawlFrame *pCF)
             return (OBJECTREF *)(size_t)(*pRD->GetEbpLocation() - GetSecurityObjectOffset(&stateBuf->hdrInfoBody));
         }
     }
-#elif defined(USE_GC_INFO_DECODER) && !defined(CROSSGEN_COMPILE)
+#else // !USE_GC_INFO_DECODER
 
     GcInfoDecoder gcInfoDecoder(
             gcInfoToken,
@@ -5120,14 +5106,13 @@ OBJECTREF* EECodeManager::GetAddrOfSecurityObject(CrawlFrame *pCF)
         OBJECTREF* pSlot = (OBJECTREF*) (spOffset + uCallerSP);
         return pSlot;
     }
-#else // !_TARGET_X86_ && !(USE_GC_INFO_DECODER && !CROSSGEN_COMPILE)
-    PORTABILITY_ASSERT("EECodeManager::GetAddrOfSecurityObject is not implemented on this platform.");
-#endif
+#endif // USE_GC_INFO_DECODER
 
     return NULL;
 }
-#endif
+#endif // !DACCESS_COMPILE && !CROSSGEN_COMPILE
 
+#ifndef CROSSGEN_COMPILE
 /*****************************************************************************
  *
  *  Returns "this" pointer if it is a non-static method
@@ -5149,7 +5134,7 @@ OBJECTREF EECodeManager::GetInstance( PREGDISPLAY    pContext,
         SUPPORTS_DAC;
     } CONTRACTL_END;
 
-#ifdef _TARGET_X86_
+#ifndef USE_GC_INFO_DECODER
     GCInfoToken gcInfoToken = pCodeInfo->GetGCInfoToken();
     unsigned    relOffset = pCodeInfo->GetRelOffset();
 
@@ -5257,25 +5242,22 @@ OBJECTREF EECodeManager::GetInstance( PREGDISPLAY    pContext,
 #endif
 
     return NULL;
-#elif defined(USE_GC_INFO_DECODER) && !defined(CROSSGEN_COMPILE)
+#else // !USE_GC_INFO_DECODER
     PTR_VOID token = EECodeManager::GetExactGenericsToken(pContext, pCodeInfo);
 
     OBJECTREF oRef = ObjectToOBJECTREF(PTR_Object(dac_cast<TADDR>(token)));
     VALIDATEOBJECTREF(oRef);
     return oRef;
-#else // !_TARGET_X86_ && !(USE_GC_INFO_DECODER && !CROSSGEN_COMPILE)
-    PORTABILITY_ASSERT("Port: EECodeManager::GetInstance is not implemented on this platform.");
-    return NULL;
-#endif // _TARGET_X86_
+#endif // USE_GC_INFO_DECODER
 }
-
+#endif // !CROSSGEN_COMPILE
 
 GenericParamContextType EECodeManager::GetParamContextType(PREGDISPLAY     pContext,
                                                            EECodeInfo *    pCodeInfo)
 {
     LIMITED_METHOD_DAC_CONTRACT;
 
-#ifdef _TARGET_X86_
+#ifndef USE_GC_INFO_DECODER
     /* Extract the necessary information from the info block header */
     GCInfoToken gcInfoToken = pCodeInfo->GetGCInfoToken();
     PTR_VOID    methodInfoPtr = pCodeInfo->GetGCInfo();
@@ -5293,16 +5275,16 @@ GenericParamContextType EECodeManager::GetParamContextType(PREGDISPLAY     pCont
     {
         return GENERIC_PARAM_CONTEXT_NONE;
     }
-    else if (info.genericsContextIsMethodDesc)
+
+    if (info.genericsContextIsMethodDesc)
     {
         return GENERIC_PARAM_CONTEXT_METHODDESC;
     }
-    else
-    {
-        return GENERIC_PARAM_CONTEXT_METHODTABLE;
-    }
+
+    return GENERIC_PARAM_CONTEXT_METHODTABLE;
+
     // On x86 the generic param context parameter is never this.
-#elif defined(USE_GC_INFO_DECODER)
+#else // !USE_GC_INFO_DECODER
     GCInfoToken gcInfoToken = pCodeInfo->GetGCInfoToken();
 
     GcInfoDecoder gcInfoDecoder(
@@ -5324,12 +5306,10 @@ GenericParamContextType EECodeManager::GetParamContextType(PREGDISPLAY     pCont
         return GENERIC_PARAM_CONTEXT_THIS;
     }
     return GENERIC_PARAM_CONTEXT_NONE;
-#else // !_TARGET_X86_ && !USE_GC_INFO_DECODER
-    PORTABILITY_ASSERT("Port: EECodeManager::GetParamContextType is not implemented on this platform.");
-    return GENERIC_PARAM_CONTEXT_NONE;
-#endif // _TARGET_X86_
+#endif // USE_GC_INFO_DECODER
 }
 
+#ifndef CROSSGEN_COMPILE
 /*****************************************************************************
  *
  *  Returns the extra argument passed to to shared generic code if it is still alive.
@@ -5341,7 +5321,7 @@ PTR_VOID EECodeManager::GetParamTypeArg(PREGDISPLAY     pContext,
 {
     LIMITED_METHOD_DAC_CONTRACT;
 
-#ifdef _TARGET_X86_
+#ifndef USE_GC_INFO_DECODER
     GCInfoToken gcInfoToken = pCodeInfo->GetGCInfoToken();
     PTR_VOID    methodInfoPtr = pCodeInfo->GetGCInfo();
     unsigned    relOffset = pCodeInfo->GetRelOffset();
@@ -5364,16 +5344,14 @@ PTR_VOID EECodeManager::GetParamTypeArg(PREGDISPLAY     pContext,
     TADDR taParamTypeArg = *PTR_TADDR(fp - GetParamTypeArgOffset(&info));
     return PTR_VOID(taParamTypeArg);
 
-#elif defined(USE_GC_INFO_DECODER) && !defined(CROSSGEN_COMPILE)
+#else // !USE_GC_INFO_DECODER
     return EECodeManager::GetExactGenericsToken(pContext, pCodeInfo);
 
-#else // !_TARGET_X86_ && !(USE_GC_INFO_DECODER && !CROSSGEN_COMPILE)
-    PORTABILITY_ASSERT("Port: EECodeManager::GetInstance is not implemented on this platform.");
-    return NULL;
-#endif // _TARGET_X86_
+#endif // USE_GC_INFO_DECODER
 }
+#endif // !CROSSGEN_COMPILE
 
-#if defined(WIN64EXCEPTIONS) && !defined(CROSSGEN_COMPILE)
+#if defined(WIN64EXCEPTIONS) && defined(USE_GC_INFO_DECODER) && !defined(CROSSGEN_COMPILE)
 /*
     Returns the generics token.  This is used by GetInstance() and GetParamTypeArg() on WIN64.
 */
@@ -5392,7 +5370,6 @@ PTR_VOID EECodeManager::GetExactGenericsToken(SIZE_T          baseStackSlot,
 {
     LIMITED_METHOD_DAC_CONTRACT;
 
-#ifdef USE_GC_INFO_DECODER
     GCInfoToken gcInfoToken = pCodeInfo->GetGCInfoToken();
 
     GcInfoDecoder gcInfoDecoder(
@@ -5442,14 +5419,10 @@ PTR_VOID EECodeManager::GetExactGenericsToken(SIZE_T          baseStackSlot,
         return PTR_VOID(taExactGenericsToken);
     }
     return NULL;
-#else // USE_GC_INFO_DECODER
-    PORTABILITY_ASSERT("EECodeManager::GetExactGenericsToken");
-    return NULL;
-#endif // USE_GC_INFO_DECODER
 }
 
 
-#endif // WIN64EXCEPTIONS / CROSSGEN_COMPILE
+#endif // WIN64EXCEPTIONS && USE_GC_INFO_DECODER && !CROSSGEN_COMPILE
 
 #ifndef CROSSGEN_COMPILE
 /*****************************************************************************/
@@ -5475,7 +5448,7 @@ void * EECodeManager::GetGSCookieAddr(PREGDISPLAY     pContext,
     }
 #endif
 
-#if defined(_TARGET_X86_)
+#ifndef USE_GC_INFO_DECODER
     CodeManStateBuf * stateBuf = (CodeManStateBuf*)pState->stateBuf;
     
     /* Extract the necessary information from the info block header */
@@ -5513,7 +5486,7 @@ void * EECodeManager::GetGSCookieAddr(PREGDISPLAY     pContext,
         return PVOID(SIZE_T(pContext->SP + argSize + info->gsCookieOffset));
     }
 
-#elif defined(USE_GC_INFO_DECODER)
+#else // !USE_GC_INFO_DECODER
     GcInfoDecoder gcInfoDecoder(
             gcInfoToken,
             DECODE_GS_COOKIE
@@ -5531,12 +5504,9 @@ void * EECodeManager::GetGSCookieAddr(PREGDISPLAY     pContext,
     }
     return NULL;
 
-#else
-    PORTABILITY_WARNING("EECodeManager::GetGSCookieAddr is not implemented on this platform.");
-    return NULL;
-#endif
+#endif // USE_GC_INFO_DECODER
 }
-#endif
+#endif // !CROSSGEN_COMPILE
 
 #ifndef USE_GC_INFO_DECODER
 /*****************************************************************************
@@ -5562,7 +5532,6 @@ bool EECodeManager::IsInPrologOrEpilog(DWORD       relPCoffset,
     return ((info.prologOffs != hdrInfo::NOT_IN_PROLOG) || 
             (info.epilogOffs != hdrInfo::NOT_IN_EPILOG));
 }
-#endif // USE_GC_INFO_DECODER
 
 /*****************************************************************************
  *
@@ -5577,7 +5546,6 @@ bool  EECodeManager::IsInSynchronizedRegion(DWORD       relOffset,
         GC_NOTRIGGER;
     } CONTRACTL_END;
 
-#ifndef USE_GC_INFO_DECODER
     hdrInfo info;
 
     DecodeGCHdrInfo(gcInfoToken, relOffset, &info);
@@ -5594,11 +5562,8 @@ bool  EECodeManager::IsInSynchronizedRegion(DWORD       relOffset,
         // Synchronized methods have at most one epilog. The epilog does not have to be at the end of the method though.
         // Everything after the epilog is also in synchronized region.
         (info.epilogCnt != 0 && info.syncEpilogStart + info.epilogSize <= relOffset);
-#else // USE_GC_INFO_DECODER
-    _ASSERTE(!"@NYI - EECodeManager::IsInSynchronizedRegion (EETwain.cpp)");
-    return false;
-#endif // USE_GC_INFO_DECODER
 }
+#endif // !USE_GC_INFO_DECODER
 
 /*****************************************************************************
  *
@@ -5612,13 +5577,13 @@ size_t EECodeManager::GetFunctionSize(GCInfoToken gcInfoToken)
         SUPPORTS_DAC;
     } CONTRACTL_END;
 
-#if defined(_TARGET_X86_)
+#ifndef USE_GC_INFO_DECODER
     hdrInfo info;
 
     DecodeGCHdrInfo(gcInfoToken, 0, &info);
 
     return info.methodSize;
-#elif defined(USE_GC_INFO_DECODER)
+#else // !USE_GC_INFO_DECODER
 
     GcInfoDecoder gcInfoDecoder(
             gcInfoToken,
@@ -5629,10 +5594,7 @@ size_t EECodeManager::GetFunctionSize(GCInfoToken gcInfoToken)
     _ASSERTE( codeLength > 0 );
     return codeLength;
 
-#else // !_TARGET_X86_ && !USE_GC_INFO_DECODER
-    PORTABILITY_ASSERT("EECodeManager::GetFunctionSize is not implemented on this platform.");
-    return 0;
-#endif
+#endif // USE_GC_INFO_DECODER
 }
 
 /*****************************************************************************
@@ -5652,23 +5614,21 @@ ReturnKind EECodeManager::GetReturnKind(GCInfoToken gcInfoToken)
         return RT_Illegal;
     }
 
-#if defined(_TARGET_X86_)
+#ifndef USE_GC_INFO_DECODER
     hdrInfo info;
 
     DecodeGCHdrInfo(gcInfoToken, 0, &info);
 
     return info.returnKind;
-#elif defined(USE_GC_INFO_DECODER)
+#else // !USE_GC_INFO_DECODER
 
     GcInfoDecoder gcInfoDecoder(gcInfoToken, DECODE_RETURN_KIND);
     return gcInfoDecoder.GetReturnKind();
 
-#else // !_TARGET_X86_ && !USE_GC_INFO_DECODER
-    PORTABILITY_ASSERT("EECodeManager::GetReturnKind is not implemented on this platform.");
-    return 0;
-#endif
+#endif // USE_GC_INFO_DECODER
 }
 
+#ifndef USE_GC_INFO_DECODER
 /*****************************************************************************
  *
  *  Returns the size of the frame of the given function.
@@ -5680,7 +5640,6 @@ unsigned int EECodeManager::GetFrameSize(GCInfoToken gcInfoToken)
         GC_NOTRIGGER;
     } CONTRACTL_END;
 
-#ifndef USE_GC_INFO_DECODER
     hdrInfo info;
 
     DecodeGCHdrInfo(gcInfoToken, 0, &info);
@@ -5689,11 +5648,8 @@ unsigned int EECodeManager::GetFrameSize(GCInfoToken gcInfoToken)
     // in all likelyhood
     _ASSERTE(!info.doubleAlign);
     return info.stackSize;
-#else // USE_GC_INFO_DECODER
-    PORTABILITY_ASSERT("EECodeManager::GetFrameSize is not implemented on this platform.");
-    return false;
-#endif // USE_GC_INFO_DECODER
 }
+#endif // USE_GC_INFO_DECODER
 
 #ifndef DACCESS_COMPILE
 

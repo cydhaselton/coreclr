@@ -18,7 +18,6 @@ namespace System.Collections {
     using System;
     using System.Runtime;
     using System.Security;
-    using System.Security.Permissions;
     using System.Diagnostics;
     using System.Runtime.CompilerServices;
     using System.Runtime.Serialization;
@@ -35,7 +34,6 @@ namespace System.Collections {
     [DebuggerTypeProxy(typeof(System.Collections.ArrayList.ArrayListDebugView))]   
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     internal class ArrayList : IList, ICloneable
     {
         private Object[] _items;

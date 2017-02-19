@@ -12,7 +12,6 @@ namespace System.Text
     using System.Runtime.Serialization;
     using System.Globalization;
     using System.Security;
-    using System.Security.Permissions;
     using System.Threading;
     using System.Text;
     using System.Diagnostics;
@@ -83,7 +82,6 @@ namespace System.Text
     // generally executes faster.
     //
 
-    [System.Runtime.InteropServices.ComVisible(true)]
     [Serializable]
     public abstract class Encoding : ICloneable
     {
@@ -627,7 +625,6 @@ namespace System.Text
 
         // True if and only if the encoding only uses single byte code points.  (Ie, ASCII, 1252, etc)
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual bool IsSingleByte
         {
             get
@@ -637,7 +634,6 @@ namespace System.Text
         }
 
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public EncoderFallback EncoderFallback
         {
             get
@@ -659,7 +655,6 @@ namespace System.Text
         }
 
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public DecoderFallback DecoderFallback
         {
             get
@@ -681,7 +676,6 @@ namespace System.Text
         }
 
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual Object Clone()
         {
             Encoding newEncoding = (Encoding)this.MemberwiseClone();
@@ -692,7 +686,6 @@ namespace System.Text
         }
 
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public bool IsReadOnly
         {
             get
@@ -781,7 +774,6 @@ namespace System.Text
         // a 3rd party encoding.
         [Pure]
         [CLSCompliant(false)]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual unsafe int GetByteCount(char* chars, int count)
         {
             // Validate input parameters
@@ -943,7 +935,6 @@ namespace System.Text
         // when we copy the buffer so that we don't overflow byteCount either.
 
         [CLSCompliant(false)]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual unsafe int GetBytes(char* chars, int charCount,
                                               byte* bytes, int byteCount)
         {
@@ -1012,7 +1003,6 @@ namespace System.Text
         // ones we need a working (if slow) default implimentation)
         [Pure]
         [CLSCompliant(false)]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual unsafe int GetCharCount(byte* bytes, int count)
         {
             // Validate input parameters
@@ -1099,7 +1089,6 @@ namespace System.Text
         // when we copy the buffer so that we don't overflow charCount either.
 
         [CLSCompliant(false)]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual unsafe int GetChars(byte* bytes, int byteCount,
                                               char* chars, int charCount)
         {
@@ -1154,7 +1143,6 @@ namespace System.Text
 
 
         [CLSCompliant(false)]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public unsafe string GetString(byte* bytes, int byteCount)
         {
             if (bytes == null)
@@ -1183,14 +1171,12 @@ namespace System.Text
         // IsAlwaysNormalized
         // Returns true if the encoding is always normalized for the specified encoding form
         [Pure]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public bool IsAlwaysNormalized()
         {
             return this.IsAlwaysNormalized(NormalizationForm.FormC);
         }
 
         [Pure]
-        [System.Runtime.InteropServices.ComVisible(false)]
         public virtual bool IsAlwaysNormalized(NormalizationForm form)
         {
             // Assume false unless the encoding knows otherwise

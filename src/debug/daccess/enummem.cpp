@@ -292,9 +292,6 @@ HRESULT ClrDataAccess::EnumMemCLRStatic(IN CLRDataEnumMemoryFlags flags)
     CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_pValueTypeClass.EnumMem(); )
     CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_pEnumClass.EnumMem(); )
     CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_pThreadClass.EnumMem(); )
-#ifdef FEATURE_CER
-    CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_pCriticalFinalizerObjectClass.EnumMem(); )
-#endif
     CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_pFreeObjectMethodTable.EnumMem(); )
     CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_pObjectCtorMD.EnumMem(); )
     CATCH_ALL_EXCEPT_RETHROW_COR_E_OPERATIONCANCELLED( g_fHostConfig.EnumMem(); )
@@ -1734,11 +1731,7 @@ HRESULT ClrDataAccess::EnumMemoryRegionsWorkerCustom()
     
     ECustomDumpFlavor eFlavor;
 
-#ifdef FEATURE_INCLUDE_ALL_INTERFACES
-    eFlavor = CCLRErrorReportingManager::g_ECustomDumpFlavor;
-#else
     eFlavor = DUMP_FLAVOR_Default;
-#endif
 
     m_enumMemFlags = CLRDATA_ENUM_MEM_MINI;
 

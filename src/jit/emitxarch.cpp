@@ -57,10 +57,6 @@ bool emitter::IsAVXInstruction(instruction ins)
 #endif
 }
 
-#ifdef _TARGET_AMD64_
-#define REX_PREFIX_MASK 0xFF00000000LL
-#endif // _TARGET_AMD64_
-
 #ifdef FEATURE_AVX_SUPPORT
 // Returns true if the AVX instruction is a binary operator that requires 3 operands.
 // When we emit an instruction with only two operands, we will duplicate the destination
@@ -85,9 +81,11 @@ bool emitter::IsThreeOperandBinaryAVXInstruction(instruction ins)
             ins == INS_minsd || ins == INS_divps || ins == INS_divpd || ins == INS_maxps || ins == INS_maxpd ||
             ins == INS_maxss || ins == INS_maxsd || ins == INS_andnps || ins == INS_andnpd || ins == INS_paddb ||
             ins == INS_paddw || ins == INS_paddd || ins == INS_paddq || ins == INS_psubb || ins == INS_psubw ||
-            ins == INS_psubd || ins == INS_psubq || ins == INS_pmuludq || ins == INS_pxor || ins == INS_pmaxub ||
-            ins == INS_pminub || ins == INS_pmaxsw || ins == INS_pminsw || ins == INS_insertps ||
-            ins == INS_vinsertf128 || ins == INS_punpckldq || ins == INS_phaddd);
+            ins == INS_psubd || ins == INS_psubq || ins == INS_pmuludq || ins == INS_pxor || ins == INS_insertps ||
+            ins == INS_vinsertf128 || ins == INS_punpckldq || ins == INS_phaddd || ins == INS_pminub ||
+            ins == INS_pminsw || ins == INS_pminsb || ins == INS_pminsd || ins == INS_pminuw || ins == INS_pminud ||
+            ins == INS_pmaxub || ins == INS_pmaxsw || ins == INS_pmaxsb || ins == INS_pmaxsd || ins == INS_pmaxuw ||
+            ins == INS_pmaxud);
 }
 
 // Returns true if the AVX instruction is a move operator that requires 3 operands.
@@ -119,7 +117,9 @@ bool emitter::Is4ByteAVXInstruction(instruction ins)
            (ins == INS_dpps || ins == INS_dppd || ins == INS_insertps || ins == INS_pcmpeqq || ins == INS_pcmpgtq ||
             ins == INS_vbroadcastss || ins == INS_vbroadcastsd || ins == INS_vpbroadcastb || ins == INS_vpbroadcastw ||
             ins == INS_vpbroadcastd || ins == INS_vpbroadcastq || ins == INS_vextractf128 || ins == INS_vinsertf128 ||
-            ins == INS_pmulld || ins == INS_ptest || ins == INS_phaddd);
+            ins == INS_pmulld || ins == INS_ptest || ins == INS_phaddd || ins == INS_pminsb || ins == INS_pminsd ||
+            ins == INS_pminuw || ins == INS_pminud || ins == INS_pmaxsb || ins == INS_pmaxsd || ins == INS_pmaxuw ||
+            ins == INS_pmaxud);
 }
 #endif // FEATURE_AVX_SUPPORT
 
@@ -139,7 +139,9 @@ bool emitter::Is4ByteSSE4Instruction(instruction ins)
     return false;
 #else
     return UseSSE3_4() && (ins == INS_dpps || ins == INS_dppd || ins == INS_insertps || ins == INS_pcmpeqq ||
-                           ins == INS_pcmpgtq || ins == INS_pmulld || ins == INS_ptest || ins == INS_phaddd);
+                           ins == INS_pcmpgtq || ins == INS_pmulld || ins == INS_ptest || ins == INS_phaddd ||
+                           ins == INS_pminsb || ins == INS_pminsd || ins == INS_pminuw || ins == INS_pminud ||
+                           ins == INS_pmaxsb || ins == INS_pmaxsd || ins == INS_pmaxuw || ins == INS_pmaxud);
 #endif
 }
 
@@ -717,12 +719,10 @@ unsigned emitter::emitGetPrefixSize(code_t code)
         return 3;
     }
 
-#ifdef _TARGET_AMD64_
-    if (code & REX_PREFIX_MASK)
+    if (hasRexPrefix(code))
     {
         return 1;
     }
-#endif // _TARGET_AMD64_
 
     return 0;
 }
@@ -1882,10 +1882,9 @@ UNATIVE_OFFSET emitter::emitInsSizeAM(instrDesc* id, code_t code)
         }
     }
 
-#ifdef _TARGET_AMD64_
     size += emitGetVexPrefixAdjustedSize(ins, attrSize, code);
 
-    if (code & REX_PREFIX_MASK)
+    if (hasRexPrefix(code))
     {
         // REX prefix
         size += emitGetRexPrefixSize(ins);
@@ -1900,7 +1899,6 @@ UNATIVE_OFFSET emitter::emitInsSizeAM(instrDesc* id, code_t code)
         // Should have a REX byte
         size += emitGetRexPrefixSize(ins);
     }
-#endif // _TARGET_AMD64_
 
     if (rgx == REG_NA)
     {
@@ -2303,9 +2301,7 @@ void emitter::emitIns(instruction ins)
     }
 #endif // DEBUG
 
-#ifdef _TARGET_AMD64_
-    assert((code & REX_PREFIX_MASK) == 0); // Can't have a REX bit with no operands, right?
-#endif                                     // _TARGET_AMD64_
+    assert(!hasRexPrefix(code)); // Can't have a REX bit with no operands, right?
 
     if (code & 0xFF000000)
     {
@@ -3997,16 +3993,14 @@ void emitter::emitIns_C_I(instruction ins, emitAttr attr, CORINFO_FIELD_HANDLE f
     code_t         code = insCodeMI(ins);
     UNATIVE_OFFSET sz   = emitInsSizeCV(id, code, val);
 
-#ifdef _TARGET_AMD64_
     // Vex prefix
     sz += emitGetVexPrefixAdjustedSize(ins, attr, insCodeMI(ins));
 
     // REX prefix, if not already included in "code"
-    if (TakesRexWPrefix(ins, attr) && (code & REX_PREFIX_MASK) == 0)
+    if (TakesRexWPrefix(ins, attr) && !hasRexPrefix(code))
     {
         sz += emitGetRexPrefixSize(ins);
     }
-#endif // _TARGET_AMD64_
 
     id->idAddr()->iiaFieldHnd = fldHnd;
     id->idCodeSize(sz);

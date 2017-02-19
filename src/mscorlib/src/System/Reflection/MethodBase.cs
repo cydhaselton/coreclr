@@ -11,7 +11,6 @@ namespace System.Reflection
     using System.Globalization;
     using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
-    using System.Security.Permissions;
     using System.Text;
     using System.Threading;
 
@@ -67,7 +66,6 @@ namespace System.Reflection
             return m;
         }
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle, RuntimeTypeHandle declaringType)
         {
             if (handle.IsNullHandle())
@@ -76,8 +74,7 @@ namespace System.Reflection
             return RuntimeType.GetMethodBase(declaringType.GetRuntimeType(), handle.GetMethodInfo());
         }
 
-        [System.Security.DynamicSecurityMethod] // Specify DynamicSecurityMethod attribute to prevent inlining of the caller.
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public static MethodBase GetCurrentMethod()
         {
             StackCrawlMark stackMark = StackCrawlMark.LookForMyCaller;
@@ -155,7 +152,6 @@ namespace System.Reflection
 
         public virtual CallingConventions CallingConvention { get { return CallingConventions.Standard; } }
 
-        [System.Runtime.InteropServices.ComVisible(true)]
         public virtual Type[] GetGenericArguments() { throw new NotSupportedException(Environment.GetResourceString("NotSupported_SubclassOverride")); }
         
         public virtual bool IsGenericMethodDefinition { get { return false; } }
@@ -210,7 +206,6 @@ namespace System.Reflection
 
         public bool IsSpecialName { get { return(Attributes & MethodAttributes.SpecialName) != 0; } }
 
-        [System.Runtime.InteropServices.ComVisible(true)]
         public bool IsConstructor 
         {
             get 
@@ -222,9 +217,6 @@ namespace System.Reflection
             }
         }
 
-#pragma warning disable 618
-        [ReflectionPermissionAttribute(SecurityAction.Demand, Flags=ReflectionPermissionFlag.MemberAccess)]            
-#pragma warning restore 618
         public virtual MethodBody GetMethodBody()
         {
             throw new InvalidOperationException();

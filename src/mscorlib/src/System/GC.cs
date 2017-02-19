@@ -16,7 +16,6 @@ namespace System {
     //This class only static members and doesn't require the serializable keyword.
 
     using System;
-    using System.Security.Permissions;
     using System.Reflection;
     using System.Security;
     using System.Threading;
@@ -98,7 +97,6 @@ namespace System {
         private static extern int GetMaxGeneration();
     
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         private static extern int _CollectionCount (int generation, int getSpecialGCCount);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -206,7 +204,6 @@ namespace System {
             _Collect(generation, iInternalModes);
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public static int CollectionCount (int generation) 
         {
             if (generation<0) 
@@ -253,7 +250,6 @@ namespace System {
         // If we insert a call to GC.KeepAlive(this) at the end of Problem(), then
         // Foo doesn't get finalized and the stream stays open.
         [MethodImplAttribute(MethodImplOptions.NoInlining)] // disable optimizations
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public static void KeepAlive(Object obj)
         {
         }
@@ -284,10 +280,8 @@ namespace System {
         // Indicates that the system should not call the Finalize() method on
         // an object that would normally require this call.
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         private static extern void _SuppressFinalize(Object o);
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         public static void SuppressFinalize(Object obj) {
             if (obj == null)
                 throw new ArgumentNullException(nameof(obj));

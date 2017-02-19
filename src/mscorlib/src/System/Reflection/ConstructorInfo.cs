@@ -16,7 +16,6 @@ namespace System.Reflection
     using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
     using System.Security;
-    using System.Security.Permissions;
     using System.Threading;
     using MemberListType = System.RuntimeType.MemberListType;
     using RuntimeTypeCache = System.RuntimeType.RuntimeTypeCache;
@@ -26,10 +25,8 @@ namespace System.Reflection
     public abstract class ConstructorInfo : MethodBase
     {
         #region Static Members
-        [System.Runtime.InteropServices.ComVisible(true)]
         public readonly static String ConstructorName = ".ctor";
 
-        [System.Runtime.InteropServices.ComVisible(true)]
         public readonly static String TypeConstructorName = ".cctor";
         #endregion
 
@@ -70,7 +67,6 @@ namespace System.Reflection
         #endregion
 
         #region MemberInfo Overrides
-        [System.Runtime.InteropServices.ComVisible(true)]
         public override MemberTypes MemberType { get { return System.Reflection.MemberTypes.Constructor; } }
         #endregion
     
@@ -215,7 +211,6 @@ namespace System.Reflection
             }
         }
 
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal override bool CacheEquals(object o)
         {
             RuntimeConstructorInfo m = o as RuntimeConstructorInfo;
@@ -319,7 +314,6 @@ namespace System.Reflection
         {
             get { return RuntimeMethodHandle.GetName(this); }
         }
-[System.Runtime.InteropServices.ComVisible(true)]
         public override MemberTypes MemberType { get { return MemberTypes.Constructor; } }
         
         public override Type DeclaringType 
@@ -463,7 +457,7 @@ namespace System.Reflection
 
         [DebuggerStepThroughAttribute]
         [Diagnostics.DebuggerHidden]
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public override Object Invoke(
             Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
         {
@@ -512,11 +506,7 @@ namespace System.Reflection
             }
             return RuntimeMethodHandle.InvokeMethod(obj, null, sig, false);
         }
-        
 
-#pragma warning disable 618
-        [ReflectionPermission(SecurityAction.Demand, Flags = ReflectionPermissionFlag.MemberAccess)]
-#pragma warning restore 618
         public override MethodBody GetMethodBody()
         {
             MethodBody mb = RuntimeMethodHandle.GetMethodBody(this, ReflectedTypeInternal);
@@ -552,7 +542,7 @@ namespace System.Reflection
         #region ConstructorInfo Overrides
         [DebuggerStepThroughAttribute]
         [Diagnostics.DebuggerHidden]
-        [MethodImplAttribute(MethodImplOptions.NoInlining)] // Methods containing StackCrawlMark local var has to be marked non-inlineable
+        [System.Security.DynamicSecurityMethod] // Methods containing StackCrawlMark local var has to be marked DynamicSecurityMethod
         public override Object Invoke(BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
         {
             INVOCATION_FLAGS invocationFlags = InvocationFlags;
@@ -618,11 +608,6 @@ namespace System.Reflection
         {
             // We don't need the return type for constructors.
             return FormatNameAndSig(true);
-        }
-
-        internal void SerializationInvoke(Object target, SerializationInfo info, StreamingContext context)
-        {
-            RuntimeMethodHandle.SerializationInvoke(this, target, info, ref context);
         }
        #endregion
     }

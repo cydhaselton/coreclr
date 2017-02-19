@@ -20,9 +20,7 @@ namespace System
     using System.Runtime;
     using System.Runtime.CompilerServices;
     using System.Security;
-    using System.Security.Permissions;
     using System.Security.Policy;
-    using System.Security.Util;
     using System.Collections;
     using System.Collections.Generic;
     using System.Threading;
@@ -39,7 +37,6 @@ namespace System
     using System.Diagnostics.Contracts;
     using System.Runtime.ExceptionServices;
 
-    [ComVisible(true)]
     public class ResolveEventArgs : EventArgs
     {
         private String _Name;
@@ -71,7 +68,6 @@ namespace System
         }
     }
 
-    [ComVisible(true)]
     public class AssemblyLoadEventArgs : EventArgs
     {
         private Assembly _LoadedAssembly;
@@ -89,15 +85,12 @@ namespace System
     }
 
     [Serializable]
-    [ComVisible(true)]
     public delegate Assembly ResolveEventHandler(Object sender, ResolveEventArgs args);
 
     [Serializable]
-    [ComVisible(true)]
     public delegate void AssemblyLoadEventHandler(Object sender, AssemblyLoadEventArgs args);
 
     [Serializable]
-    [ComVisible(true)]
     internal delegate void AppDomainInitializer(string[] args);
 
     internal class AppDomainInitializerInfo
@@ -159,7 +152,6 @@ namespace System
             if (Info==null)
                 return null;
             AppDomainInitializer retVal=null;
-            new ReflectionPermission(ReflectionPermissionFlag.MemberAccess).Assert();
             for (int i=0;i<Info.Length;i++)
             {
                 Assembly assembly=Assembly.Load(Info[i].TargetTypeAssembly);
@@ -183,13 +175,12 @@ namespace System
         // the EE- AppDomainBaseObject in this case)
 
         private AppDomainManager _domainManager;
-        private Dictionary<String, Object[]> _LocalStore;
+        private Dictionary<String, Object> _LocalStore;
         private AppDomainSetup   _FusionStore;
         private Evidence         _SecurityIdentity;
 #pragma warning disable 169
         private Object[]         _Policies; // Called from the VM.
 #pragma warning restore 169
-        [method: System.Security.SecurityCritical]
         public event AssemblyLoadEventHandler AssemblyLoad;
 
         private ResolveEventHandler _TypeResolve;
@@ -255,10 +246,6 @@ namespace System
             }
         }
 
-#if FEATURE_REFLECTION_ONLY_LOAD
-        [method: System.Security.SecurityCritical]
-        public event ResolveEventHandler ReflectionOnlyAssemblyResolve;
-#endif // FEATURE_REFLECTION_ONLY
 
         private ApplicationTrust _applicationTrust;
         private EventHandler     _processExit;
@@ -423,9 +410,7 @@ namespace System
             {
                 try
                 {
-                    new PermissionSet(PermissionState.Unrestricted).Assert();
                     _domainManager = CreateInstanceAndUnwrap(domainManagerAssembly, domainManagerType) as AppDomainManager;
-                    CodeAccessPermission.RevertAssert();
                 }
                 catch (FileNotFoundException e)
                 {
@@ -668,53 +653,6 @@ namespace System
             }
         }
 
-#if FEATURE_REFLECTION_ONLY_LOAD
-        private Assembly ResolveAssemblyForIntrospection(Object sender, ResolveEventArgs args)
-        {
-            Contract.Requires(args != null);
-            return Assembly.ReflectionOnlyLoad(ApplyPolicy(args.Name));
-        }
-        
-        // Helper class for method code:EnableResolveAssembliesForIntrospection
-        private class NamespaceResolverForIntrospection
-        {
-            private IEnumerable<string> _packageGraphFilePaths;
-            public NamespaceResolverForIntrospection(IEnumerable<string> packageGraphFilePaths)
-            {
-                _packageGraphFilePaths = packageGraphFilePaths;
-            }
-            
-            public void ResolveNamespace(
-                object sender, 
-                System.Runtime.InteropServices.WindowsRuntime.NamespaceResolveEventArgs args)
-            {
-                Contract.Requires(args != null);
-                
-                IEnumerable<string> fileNames = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMetadata.ResolveNamespace(
-                    args.NamespaceName,
-                    null,   // windowsSdkFilePath ... Use OS installed .winmd files
-                    _packageGraphFilePaths);
-                foreach (string fileName in fileNames)
-                {
-                    args.ResolvedAssemblies.Add(Assembly.ReflectionOnlyLoadFrom(fileName));
-                }
-            }
-        }
-        
-        // Called only by native function code:ValidateWorker
-        private void EnableResolveAssembliesForIntrospection(string verifiedFileDirectory)
-        {
-            CurrentDomain.ReflectionOnlyAssemblyResolve += new ResolveEventHandler(ResolveAssemblyForIntrospection);
-            
-            string[] packageGraphFilePaths = null;
-            if (verifiedFileDirectory != null)
-                packageGraphFilePaths = new string[] { verifiedFileDirectory };
-            NamespaceResolverForIntrospection namespaceResolver = new NamespaceResolverForIntrospection(packageGraphFilePaths);
-            
-            System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMetadata.ReflectionOnlyNamespaceResolve += 
-                new EventHandler<System.Runtime.InteropServices.WindowsRuntime.NamespaceResolveEventArgs>(namespaceResolver.ResolveNamespace);
-        }
-#endif // FEATURE_REFLECTION_ONLY_LOAD
 
         public ObjectHandle CreateInstance(String assemblyName,
                                            String typeName)
@@ -785,27 +723,22 @@ namespace System
         internal static extern void PublishAnonymouslyHostedDynamicMethodsAssembly(RuntimeAssembly assemblyHandle);
 
         public void SetData (string name, object data) {
-            SetDataHelper(name, data, null);
-        }
-
-        private void SetDataHelper (string name, object data, IPermission permission)
-        {
             if (name == null)
                 throw new ArgumentNullException(nameof(name));
             Contract.EndContractBlock();
 
             // SetData should only be used to set values that don't already exist.
-            object[] currentVal;
+            object currentVal;
             lock (((ICollection)LocalStore).SyncRoot) {
                 LocalStore.TryGetValue(name, out currentVal);
             }
-            if (currentVal != null && currentVal[0] != null)
+            if (currentVal != null)
             {
                 throw new InvalidOperationException(Environment.GetResourceString("InvalidOperation_SetData_OnlyOnce"));
             }
 
             lock (((ICollection)LocalStore).SyncRoot) {
-                LocalStore[name] = new object[] {data, permission};
+                LocalStore[name] = data;
             }
         }
 
@@ -823,17 +756,13 @@ namespace System
                     return FusionStore.LoaderOptimization;
                 else 
                 {
-                    object[] data;
+                    object data;
                     lock (((ICollection)LocalStore).SyncRoot) {
                         LocalStore.TryGetValue(name, out data);
                     }
                     if (data == null)
                         return null;
-                    if (data[1] != null) {
-                        IPermission permission = (IPermission) data[1];
-                        permission.Demand();
-                    }
-                    return data[0];
+                    return data;
                 }
             }
            else {
@@ -1060,13 +989,13 @@ namespace System
             return null;
         }
 
-        private Dictionary<String, Object[]> LocalStore
+        private Dictionary<String, Object> LocalStore
         {
             get { 
                 if (_LocalStore != null)
                     return _LocalStore;
                 else {
-                    _LocalStore = new Dictionary<String, Object[]>();
+                    _LocalStore = new Dictionary<String, Object>();
                     return _LocalStore;
                 }
             }
@@ -1169,7 +1098,6 @@ namespace System
             };  
         } // PrepareDataForSetup
 
-        [MethodImplAttribute(MethodImplOptions.NoInlining)]
         private static Object Setup(Object arg)
         {
             Contract.Requires(arg != null && arg is Object[]);
@@ -1246,11 +1174,11 @@ namespace System
                         if(values == null)
                             throw new ArgumentNullException(propertyNames[i]);
 
-                        ad.SetDataHelper(propertyNames[i], NormalizeAppPaths(values), null);
+                        ad.SetData(propertyNames[i], NormalizeAppPaths(values));
                     }
                     else if(propertyNames[i]!= null)
                     {
-                        ad.SetDataHelper(propertyNames[i],propertyValues[i],null);     // just propagate
+                        ad.SetData(propertyNames[i],propertyValues[i]);     // just propagate
                     }
                 }
             }
@@ -1412,10 +1340,7 @@ namespace System
         {
             get
             {
-                PermissionSet grantSet = null;
-                GetGrantSet(GetNativeHandle(), JitHelpers.GetObjectHandleOnStack(ref grantSet));
-
-                return grantSet == null || grantSet.IsUnrestricted();
+                return true;
             }
         }
 
@@ -1431,14 +1356,12 @@ namespace System
 
         public Int32 Id
         {
-            [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]  
             get {
                 return GetId();
             }
         }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]              
         internal extern Int32 GetId();
 
     }

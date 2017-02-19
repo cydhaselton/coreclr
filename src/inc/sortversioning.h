@@ -32,6 +32,7 @@ namespace SortVersioning
         __in int cchSrc,
         __out_bcount_opt(cbDest) LPBYTE pDest,
         __in int cbDest,
+<<<<<<< HEAD
 #ifdef __ANDROID__
         __proc_reserved LPVOID lpReserved,
         __proc_reserved LPARAM lParam);
@@ -39,6 +40,12 @@ namespace SortVersioning
         __reserved LPVOID lpReserved,
         __reserved LPARAM lParam);
 #endif
+=======
+
+        __clr_reserved LPVOID lpReserved,
+        __clr_reserved LPARAM lParam);
+
+>>>>>>> master
     typedef int (*SORTCHANGECASE) (
         __in PSORTHANDLE pSortHandle,
         __in DWORD dwFlags,
@@ -46,6 +53,7 @@ namespace SortVersioning
         __in int cchSrc,
         __out_ecount_opt(cchDest) LPWSTR pDest,
         __in int cchDest,
+<<<<<<< HEAD
 #ifdef __ANDROID__
         __proc_reserved LPVOID lpReserved,
         __proc_reserved LPARAM lParam);
@@ -53,6 +61,11 @@ namespace SortVersioning
         __reserved LPVOID lpReserved,
         __reserved LPARAM lParam);
 #endif
+=======
+        __clr_reserved LPVOID lpReserved,
+        __clr_reserved LPARAM lParam);
+
+>>>>>>> master
     typedef int (*SORTCOMPARESTRING) (
         __in PSORTHANDLE pSortHandle,
         __in DWORD dwCmpFlags,
@@ -60,6 +73,7 @@ namespace SortVersioning
         __in int cchCount1,
         __in LPCWSTR lpString2,
         __in int cchCount2,
+<<<<<<< HEAD
 #ifdef __ANDROID__
         __proc_reserved LPVOID lpReserved,
         __proc_reserved LPARAM lParam);
@@ -67,6 +81,11 @@ namespace SortVersioning
         __reserved LPVOID lpReserved,
         __reserved LPARAM lParam);
 #endif
+=======
+        __clr_reserved LPVOID lpReserved,
+        __clr_reserved LPARAM lParam);
+
+>>>>>>> master
     typedef int (*SORTFINDSTRING) (
         __in                    PSORTHANDLE pSortHandle,
         __in                    DWORD dwFindNLSStringFlags,
@@ -75,6 +94,7 @@ namespace SortVersioning
         __in_ecount(cchValue)   LPCWSTR lpStringValue,
         __in                    int cchValue,
         __out_opt               LPINT pcchFound,
+<<<<<<< HEAD
 #ifdef __ANDROID__
         __proc_reserved LPVOID lpReserved,
         __proc_reserved LPARAM lParam);
@@ -82,6 +102,11 @@ namespace SortVersioning
         __reserved              LPVOID lpReserved,
         __reserved              LPARAM lParam);
 #endif
+=======
+        __clr_reserved          LPVOID lpReserved,
+        __clr_reserved          LPARAM lParam);
+
+>>>>>>> master
     typedef BOOL (*SORTISDEFINEDSTRING) (
         __in                PSORTHANDLE     pSortHandle,
         __in                NLS_FUNCTION    Function,
@@ -94,6 +119,7 @@ namespace SortVersioning
         __in DWORD dwFlags,
         __in_ecount(cchSrc) LPCWSTR pSrc,
         __in int cchSrc,
+<<<<<<< HEAD
 #ifdef __ANDROID__
         __proc_reserved LPVOID lpReserved,
         __proc_reserved LPARAM lParam);
@@ -101,6 +127,11 @@ namespace SortVersioning
         __reserved LPVOID lpReserved,
         __reserved LPARAM lParam);
 #endif
+=======
+        __clr_reserved LPVOID lpReserved,
+        __clr_reserved LPARAM lParam);
+
+>>>>>>> master
 #define SORT_NAME_SIZE 85
 
     // NOTE: This needs to stay in sync with the sorting dll's handle declaration
@@ -134,6 +165,7 @@ namespace SortVersioning
                                __in_ecount(cchCount2) LPCWSTR lpString2,
                                __in int cchCount2,
                                __in_opt CONST NLSVERSIONINFO * lpVersionInformation,
+<<<<<<< HEAD
 #ifdef __ANDROID__
 		               __proc_reserved LPVOID lpReserved,
 		               __proc_reserved LPARAM lParam);
@@ -141,6 +173,10 @@ namespace SortVersioning
                                __reserved LPVOID lpReserved,
                                __reserved LPARAM lParam );
 #endif
+=======
+                               __clr_reserved LPVOID lpReserved,
+                               __clr_reserved LPARAM lParam );
+>>>>>>> master
     __success(return != 0) int WINAPI SortDllCompareString(
         __in PSORTHANDLE pSort,
         __in DWORD dwCmpFlags,
@@ -159,6 +195,7 @@ namespace SortVersioning
                            __out_ecount_opt(cchDest)  LPWSTR lpDestStr, // really this should be __out_awcount_opt(dwMapFlags & LCMAP_SORTKEY, cchDest)
                            __in int cchDest,
                            __in_opt CONST NLSVERSIONINFO * lpVersionInformation,
+<<<<<<< HEAD
 #ifdef __ANDROID__
          	           __proc_reserved LPVOID lpReserved,
 	                   __proc_reserved LPVOID lParam);
@@ -166,6 +203,11 @@ namespace SortVersioning
                            __reserved LPVOID lpReserved,
                            __reserved LPARAM lParam );
 #endif
+=======
+                           __clr_reserved LPVOID lpReserved,
+                           __clr_reserved LPARAM lParam );    
+
+>>>>>>> master
    __success(return != 0) int WINAPI SortDllChangeCase(
         __in PSORTHANDLE pSort,
         __in DWORD dwFlags,
@@ -194,6 +236,7 @@ namespace SortVersioning
                         __in int cchValue,
                         __out_opt LPINT pcchFound,
                         __in_opt CONST NLSVERSIONINFO * lpVersionInformation,
+<<<<<<< HEAD
 #ifdef __ANDROID__
          	        __proc_reserved LPVOID lpReserved,
          	        __proc_reserved LPARAM lParam);
@@ -201,6 +244,11 @@ namespace SortVersioning
                         __reserved LPVOID lpReserved,
                         __reserved LPARAM lParam);
 #endif
+=======
+                        __clr_reserved LPVOID lpReserved,
+                        __clr_reserved LPARAM lParam);
+
+>>>>>>> master
     __success(return != 0) int WINAPI SortDllFindString(
         __in PSORTHANDLE pSort,
         __in DWORD dwFindNLSStringFlags,

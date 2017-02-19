@@ -10,7 +10,6 @@ namespace System.Globalization {
     using System.Collections;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
-    using System.Security.Permissions;
     using System.Runtime.InteropServices;
     using System.Runtime.Versioning;
     using System.Text;
@@ -56,7 +55,6 @@ namespace System.Globalization {
 
 
     [Serializable]
-    [System.Runtime.InteropServices.ComVisible(true)]
     public sealed class DateTimeFormatInfo : ICloneable, IFormatProvider
     {
         //
@@ -1358,7 +1356,6 @@ namespace System.Globalization {
 
 
         // Returns the string array of the one-letter day of week names.
-        [System.Runtime.InteropServices.ComVisible(false)]
         public String[] ShortestDayNames
         {
             get
@@ -1581,7 +1578,6 @@ namespace System.Globalization {
 
 
         // Returns the super short day of week names for the specified day of week.
-        [System.Runtime.InteropServices.ComVisible(false)]
         public  String GetShortestDayName(DayOfWeek dayOfWeek)
         {
 
@@ -1959,7 +1955,6 @@ namespace System.Globalization {
         // String nativeName = dtfi.NativeCalendarName; // Get the Japanese name for the Japanese calendar.
         // DateTimeFormatInfo dtfi = new CultureInfo("ja-JP", false).DateTimeFormat.Calendar = new GregorianCalendar(GregorianCalendarTypes.Localized);
         // String nativeName = dtfi.NativeCalendarName; // Get the Japanese name for the Gregorian calendar.
-        [System.Runtime.InteropServices.ComVisible(false)]
         public String NativeCalendarName
         {
             get
@@ -1986,7 +1981,6 @@ namespace System.Globalization {
         // WARNING: If more validation is ever done in one place, it should be done in the other.
         //
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public void SetAllDateTimePatterns(String[] patterns, char format)
         {
             if (IsReadOnly)
@@ -2049,7 +2043,6 @@ namespace System.Globalization {
             return;
         }
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public String[] AbbreviatedMonthGenitiveNames
         {
             get
@@ -2077,7 +2070,6 @@ namespace System.Globalization {
             }
         }
 
-        [System.Runtime.InteropServices.ComVisible(false)]
         public String[] MonthGenitiveNames
          {
             get

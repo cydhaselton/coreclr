@@ -14,7 +14,6 @@ namespace System.Reflection.Emit
     using System.Security;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Security.Permissions;
     using System.Runtime.InteropServices;
     using System.Diagnostics;
     using System.Diagnostics.Contracts;
@@ -914,7 +913,6 @@ namespace System.Reflection.Emit
         }
 
 
-[System.Runtime.InteropServices.ComVisible(true)]
         public void SetCustomAttribute(ConstructorInfo con, byte[] binaryAttribute)
         {
             if (con == null)
@@ -1115,7 +1113,6 @@ namespace System.Reflection.Emit
     /// Describes exception handler in a method body.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [ComVisible(false)]
     internal struct ExceptionHandler : IEquatable<ExceptionHandler>
     {
         // Keep in sync with unmanged structure. 

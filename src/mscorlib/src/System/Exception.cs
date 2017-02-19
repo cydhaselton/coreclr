@@ -18,7 +18,6 @@ namespace System {
     using System.Runtime.Serialization;
     using System.Runtime.Versioning;
     using System.Diagnostics;
-    using System.Security.Permissions;
     using System.Security;
     using System.IO;
     using System.Text;
@@ -27,11 +26,8 @@ namespace System {
     using System.Globalization;
     using System.Diagnostics.Contracts;
 
-    [ClassInterface(ClassInterfaceType.None)]
-    [ComDefaultInterface(typeof(_Exception))]
     [Serializable]
-    [ComVisible(true)]
-    public class Exception : ISerializable, _Exception
+    public class Exception : ISerializable
     {
         private void Init()
         {
@@ -770,19 +766,6 @@ namespace System {
         // and create a corresponding CrossAppDomainMarshaledException
         internal virtual String InternalToString()
         {
-            try 
-            {
-#pragma warning disable 618
-                SecurityPermission sp= new SecurityPermission(SecurityPermissionFlag.ControlEvidence | SecurityPermissionFlag.ControlPolicy);
-#pragma warning restore 618
-                sp.Assert();
-            }
-            catch  
-            {
-                //under normal conditions there should be no exceptions
-                //however if something wrong happens we still can call the usual ToString
-            }
-
             // Get the current stack trace string. 
             return ToString(true, true);
         }

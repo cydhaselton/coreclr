@@ -172,7 +172,6 @@ namespace System
             return result;
         }
 
-        [ComVisible(false)]
         public static string Concat<T>(IEnumerable<T> values)
         {
             if (values == null)
@@ -223,7 +222,6 @@ namespace System
         }
 
 
-        [ComVisible(false)]
         public static string Concat(IEnumerable<string> values)
         {
             if (values == null)
@@ -571,7 +569,6 @@ namespace System
             return Join(separator, value, 0, value.Length);
         }
 
-        [ComVisible(false)]
         public unsafe static string Join(string separator, params object[] values)
         {
             separator = separator ?? string.Empty;
@@ -582,7 +579,6 @@ namespace System
             }
         }
 
-        [ComVisible(false)]
         public unsafe static string Join<T>(string separator, IEnumerable<T> values)
         {
             separator = separator ?? string.Empty;
@@ -593,7 +589,6 @@ namespace System
             }
         }
 
-        [ComVisible(false)]
         public static string Join(string separator, IEnumerable<string> values)
         {
             if (values == null)
@@ -951,7 +946,95 @@ namespace System
             Contract.EndContractBlock();
 
             return Substring(0, startIndex);
-        }   
+        }
+
+        public string Replace(string oldValue, string newValue, bool ignoreCase, CultureInfo culture)
+        {
+            Contract.Ensures(Contract.Result<String>() != null);
+            Contract.EndContractBlock();
+
+            return ReplaceCore(oldValue, newValue, culture, ignoreCase ? CompareOptions.IgnoreCase : CompareOptions.None);
+        }
+
+        public string Replace(string oldValue, string newValue, StringComparison comparisonType)
+        {
+            Contract.Ensures(Contract.Result<String>() != null);
+            Contract.EndContractBlock();
+
+            switch (comparisonType)
+            {
+                case StringComparison.CurrentCulture:
+                    return ReplaceCore(oldValue, newValue, CultureInfo.CurrentCulture, CompareOptions.None);
+
+                case StringComparison.CurrentCultureIgnoreCase:
+                    return ReplaceCore(oldValue, newValue, CultureInfo.CurrentCulture, CompareOptions.IgnoreCase);
+
+                case StringComparison.InvariantCulture:
+                    return ReplaceCore(oldValue, newValue, CultureInfo.InvariantCulture, CompareOptions.None);
+
+                case StringComparison.InvariantCultureIgnoreCase:
+                    return ReplaceCore(oldValue, newValue, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase);
+
+                case StringComparison.Ordinal:
+                    return ReplaceCore(oldValue, newValue, CultureInfo.InvariantCulture, CompareOptions.Ordinal);
+
+                case StringComparison.OrdinalIgnoreCase:
+                    return ReplaceCore(oldValue, newValue, CultureInfo.InvariantCulture, CompareOptions.OrdinalIgnoreCase);
+
+                default:
+                    throw new ArgumentException(Environment.GetResourceString("NotSupported_StringComparison"), nameof(comparisonType));
+            }
+        }
+
+        private unsafe String ReplaceCore(string oldValue, string newValue, CultureInfo culture, CompareOptions options)
+        {
+            if (oldValue == null)
+                throw new ArgumentNullException(nameof(oldValue));
+
+            // If they asked to replace oldValue with a null, replace all occurences
+            // with the empty string.
+            if (newValue == null)
+                newValue = string.Empty;
+
+            CultureInfo referenceCulture = culture ?? CultureInfo.CurrentCulture;
+            StringBuilder result = StringBuilderCache.Acquire();
+
+            int startIndex = 0;
+            int index = 0;
+
+            int matchLength = 0;
+
+            bool hasDoneAnyReplacements = false;
+
+            do
+            {
+                index = referenceCulture.CompareInfo.IndexOfCore(this, oldValue, startIndex, m_stringLength - startIndex, options, &matchLength);
+                if (index >= 0)
+                {
+                    // append the unmodified portion of string
+                    result.Append(this, startIndex, index - startIndex);
+
+                    // append the replacement
+                    result.Append(newValue);
+
+                    startIndex = index + matchLength;
+                    hasDoneAnyReplacements = true;
+                }
+                else if (!hasDoneAnyReplacements)
+                {
+                    // small optimization,
+                    // if we have not done any replacements,
+                    // we will return the original string
+                    return this;
+                }
+                else
+                {
+                    result.Append(this, startIndex, m_stringLength - startIndex);
+                }
+            } while (index >= 0);
+
+            return StringBuilderCache.GetStringAndRelease(result);
+        }
 
         // Replaces all instances of oldChar with newChar.
         //
@@ -1039,13 +1122,11 @@ namespace System
             return ReplaceInternal(oldValue, newValue);
         }
 
-        [ComVisible(false)]
         public unsafe String[] Split(char separator, StringSplitOptions options = StringSplitOptions.None) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(&separator, 1, int.MaxValue, options);
         }
 
-        [ComVisible(false)]
         public unsafe String[] Split(char separator, int count, StringSplitOptions options = StringSplitOptions.None) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(&separator, 1, count, options);
@@ -1081,13 +1162,11 @@ namespace System
             return SplitInternal(separator, count, StringSplitOptions.None);
         }
 
-        [ComVisible(false)]
         public String[] Split(char[] separator, StringSplitOptions options) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(separator, Int32.MaxValue, options);
         }
 
-        [ComVisible(false)]
         public String[] Split(char[] separator, int count, StringSplitOptions options)
         {
             Contract.Ensures(Contract.Result<String[]>() != null);
@@ -1144,25 +1223,21 @@ namespace System
             }
         }
 
-        [ComVisible(false)]
         public String[] Split(String separator, StringSplitOptions options = StringSplitOptions.None) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(separator ?? String.Empty, null, Int32.MaxValue, options);
         }
 
-        [ComVisible(false)]
         public String[] Split(String separator, Int32 count, StringSplitOptions options = StringSplitOptions.None) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(separator ?? String.Empty, null, count, options);
         }
 
-        [ComVisible(false)]
         public String [] Split(String[] separator, StringSplitOptions options) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(null, separator, Int32.MaxValue, options);
         }
 
-        [ComVisible(false)]
         public String[] Split(String[] separator, Int32 count, StringSplitOptions options) {
             Contract.Ensures(Contract.Result<String[]>() != null);
             return SplitInternal(null, separator, count, options);
