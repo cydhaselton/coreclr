@@ -22,10 +22,11 @@ if(CLR_CMAKE_PLATFORM_UNIX)
     add_definitions(-DPAL_IMPLEMENTATION)
     add_definitions(-D_POSIX_C_SOURCE=200809L)
 
+if(NOT(CLR_CMAKE_PLATFORM_ANDROID))
     set(TWO_WAY_PIPE_SOURCES
       unix/twowaypipe.cpp
     )
-
+endif(CLR_CMAKE_PLATFORM_ANDROID)
 endif(CLR_CMAKE_PLATFORM_UNIX)
 
 _add_library(debug-pal STATIC ${TWO_WAY_PIPE_SOURCES})
