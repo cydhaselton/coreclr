@@ -404,6 +404,7 @@ private:
                     EE_ILEXCEPTION_CLAUSE*  pEHClause,
                     MethodDesc*             pMD,
                     EHFuncletType funcletType
+                    X86_ARG(PT_CONTEXT pContextRecord)
                     ARM_ARG(PT_CONTEXT pContextRecord)
                     ARM64_ARG(PT_CONTEXT pContextRecord)
                     );
@@ -651,6 +652,11 @@ public:
     bool IsInFirstPass()
     {
         return !m_ExceptionFlags.UnwindHasStarted();
+    }
+
+    EHClauseInfo* GetEHClauseInfo()
+    {
+        return &m_EHClauseInfo;
     }
     
 private: ;
